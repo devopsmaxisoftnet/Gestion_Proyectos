@@ -1,0 +1,86 @@
+<?php
+/**
+ * Modelo: Oportunidad
+ */
+class OportunidadModel {
+    
+    public function getAll($filtros = []) {
+        $where = "1=1";
+        $params = [];
+        
+        if (!empty($filtros['estado'])) {
+            $where .= " AND o.estado = ?";
+            $params[] = $filtros['estado'];
+        }
+        if (!empty($filtros['busqueda'])) {
+            $where .= " AND (o.nombre LIKE ? OR c.razon_social LIKE ? OR o.codigo LIKE ?)";
+            $params[] = "%{$filtros['busqueda']}%";
+            $params[] = "%{$filtros['busqueda']}%";
+            $params[] = "%{$filtros['busqueda']}%";
+        }
+        if (!empty($filtros['linea_negocio_id'])) {
+            $where .= " AND o.linea_negocio_id = ?";
+            $params[] = $filtros['linea_negocio_id'];
+        }
+        
+        return dbQuery("
+            SELECT o.*, c.razon_social as entidad, ln.nombre as linea,
+                   u.nombre as resp_nombre, u.apellido as resp_apellido
+            FROM oportunidades o
+            LEFT JOIN clientes c ON o.cliente_id = c.id
+            LEFT JOIN lineas_negocio ln ON o.linea_negocio_id = ln.id
+            LEFT JOIN usuarios u ON o.responsable_id = u.id
+            WHERE $where
+            ORDER BY o.fecha_limite ASC
+        ", $params);
+    }
+    
+    public function getById($id) {
+        return dbQueryOne("
+            SELECT o.*, c.razon_social as entidad, ln.nombre as linea,
+                   u.nombre as resp_nombre, u.apellido as resp_apellido
+            FROM oportunidades o
+            LEFT JOIN clientes c ON o.cliente_id = c.id
+            LEFT JOIN lineas_negocio ln ON o.linea_negocio_id = ln.id
+            LEFT JOIN usuarios u ON o.responsable_id = u.id
+            WHERE o.id = ?
+        ", [$id]);
+    }
+    
+    public function create($data) {
+        $codigo = 'OP-' . date('Y') . '-' . strtoupper(substr(md5(uniqid()), 0, 6));
+        dbExecute("
+            INSERT INTO oportunidades (codigo, nombre, cliente_id, linea_negocio_id, responsable_id,
+            monto_estimado, fecha_limite, estado, prioridad, descripcion)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'detectada', ?, ?)
+        ", [
+            $codigo, $data['nombre'], $data['cliente_id'] ?: null,
+            $data['linea_negocio_id'] ?: null, $data['responsable_id'] ?: null,
+            $data['monto_estimado'], $data['fecha_limite'], $data['prioridad'] ?? 'media',
+            $data['descripcion'] ?? ''
+        ]);
+        return dbLastId();
+    }
+    
+    public function update($id, $data) {
+        return dbExecute("
+            UPDATE oportunidades SET
+            nombre = ?, cliente_id = ?, linea_negocio_id = ?, responsable_id = ?,
+            monto_estimado = ?, fecha_limite = ?, estado = ?, prioridad = ?, descripcion = ?, observaciones = ?
+            WHERE id = ?
+        ", [
+            $data['nombre'], $data['cliente_id'] ?: null, $data['linea_negocio_id'] ?: null,
+            $data['responsable_id'] ?: null, $data['monto_estimado'], $data['fecha_limite'],
+            $data['estado'], $data['prioridad'] ?? 'media', $data['descripcion'] ?? '',
+            $data['observaciones'] ?? '', $id
+        ]);
+    }
+    
+    public function delete($id) {
+        return dbExecute("DELETE FROM oportunidades WHERE id = ?", [$id]);
+    }
+    
+    public function cambiarEstado($id, $estado) {
+        return dbExecute("UPDATE oportunidades SET estado = ? WHERE id = ?", [$estado, $id]);
+    }
+}
