@@ -49,7 +49,7 @@
                 </td>
                 <td>
                     <div class="table-actions">
-                        <a href="<?= BASE_URL ?>/contratos/editar/<?= $ct['id'] ?>" class="section-action" style="font-size:12px">
+                        <a href="<?= BASE_URL ?>/contratos/editar/<?= $ct['id'] ?>" data-side-modal title="Ver Contrato" class="section-action" style="font-size:12px">
                             Ver <i class="fas fa-chevron-right"></i>
                         </a>
                     </div>

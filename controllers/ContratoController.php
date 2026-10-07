@@ -68,9 +68,10 @@ class ContratoController {
         $pageTitle = 'Editar contrato';
         $currentPage = 'contratos';
         
-        include __DIR__ . '/../views/layout/header.php';
+        $isAjax = !empty($_GET['ajax']);
+        if (!$isAjax) include __DIR__ . '/../views/layout/header.php';
         include __DIR__ . '/../views/contratos/crear_contrato.php';
-        include __DIR__ . '/../views/layout/footer.php';
+        if (!$isAjax) include __DIR__ . '/../views/layout/footer.php';
     }
     
     public function eliminar($id) {
