@@ -732,7 +732,10 @@ if (in_array($userRol, ['superadmin', 'admin'])) {
     box-shadow: -10px 0 40px rgba(15, 23, 42, 0.15), -1px 0 0 rgba(226, 232, 240, 0.8); 
     overflow: hidden;
     animation: sidePanelSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: max-width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.global-modal.modal-wide {
+    max-width: 860px !important;
 }
 
 @keyframes sidePanelSlideIn {
@@ -1893,13 +1896,21 @@ function redimensionarModalIframe() {
     }
 }
 
-function abrirGlobalModal(titulo, url, icon = 'fas fa-plus-circle', subtitulo = 'Ventana de edición y configuración') {
+function abrirGlobalModal(titulo, url, icon = 'fas fa-plus-circle', subtitulo = 'Ventana de edición y configuración', size = '') {
     const titleEl = document.getElementById('globalModalTitle');
     const subtitleEl = document.querySelector('.global-modal-subtitle');
     const badgeEl = document.getElementById('globalModalIconBadge');
     const iframe = document.getElementById('globalModalIframe');
     const loader = document.getElementById('globalModalLoader');
     const overlay = document.getElementById('globalIframeOverlay');
+    const modalEl = document.querySelector('.global-modal');
+    
+    if (modalEl) {
+        modalEl.classList.remove('modal-wide');
+        if (size === 'wide' || size === 'xl' || size === 'lg') {
+            modalEl.classList.add('modal-wide');
+        }
+    }
     
     if (titleEl) titleEl.textContent = titulo;
     if (subtitleEl && subtitulo) subtitleEl.textContent = subtitulo;
@@ -1926,6 +1937,7 @@ function abrirGlobalModal(titulo, url, icon = 'fas fa-plus-circle', subtitulo = 
 function cerrarGlobalModal() {
     const overlay = document.getElementById('globalIframeOverlay');
     const iframe = document.getElementById('globalModalIframe');
+    const modalEl = document.querySelector('.global-modal');
     if (!overlay) return;
     
     // Add exit animation
@@ -1935,6 +1947,9 @@ function cerrarGlobalModal() {
     setTimeout(function() {
         overlay.classList.remove('visible');
         overlay.classList.remove('is-closing');
+        if (modalEl) {
+            modalEl.classList.remove('modal-wide');
+        }
         if (iframe) {
             iframe.src = '';
             iframe.style.height = '200px';

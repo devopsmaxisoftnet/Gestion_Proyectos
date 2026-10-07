@@ -1225,11 +1225,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 3. Notificar redimensión al modal padre si está en un iframe
-    if (window.parent && window.parent !== window && typeof window.parent.redimensionarModalIframe === 'function') {
-        window.parent.redimensionarModalIframe();
-        setTimeout(window.parent.redimensionarModalIframe, 80);
-        setTimeout(window.parent.redimensionarModalIframe, 250);
+    // 3. Notificar redimensión y asegurar ancho óptimo al modal padre si está en un iframe
+    if (window.parent && window.parent !== window) {
+        try {
+            const parentModal = window.parent.document.querySelector('.global-modal');
+            if (parentModal) parentModal.classList.add('modal-wide');
+        } catch(e) {}
+        if (typeof window.parent.redimensionarModalIframe === 'function') {
+            window.parent.redimensionarModalIframe();
+            setTimeout(window.parent.redimensionarModalIframe, 80);
+            setTimeout(window.parent.redimensionarModalIframe, 250);
+        }
     }
 });
 </script>
