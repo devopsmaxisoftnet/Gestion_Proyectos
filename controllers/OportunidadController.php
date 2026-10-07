@@ -133,10 +133,17 @@ class OportunidadController {
             if (isset($_POST['requiere_eval_especializada'])) {
                 dbExecute("UPDATE oportunidades SET requiere_evaluacion_especializada = ? WHERE id = ?", [intval($_POST['requiere_eval_especializada']), $id]);
             }
+            if (isset($_POST['observaciones'])) {
+                dbExecute("UPDATE oportunidades SET observaciones = ? WHERE id = ?", [trim($_POST['observaciones']), $id]);
+            }
             
             // Cambiar el estado principal si se especificó
             if ($siguiente_estado) {
                 $this->model->cambiarEstado($id, $siguiente_estado);
+                
+                if (in_array($siguiente_estado, ['descartada', 'no_adjudicada']) && !empty($_POST['motivo_descarte'])) {
+                    dbExecute("UPDATE oportunidades SET motivo_descarte = ? WHERE id = ?", [trim($_POST['motivo_descarte']), $id]);
+                }
             }
             
             header('Location: ' . BASE_URL . '/oportunidades/ver/' . $id);

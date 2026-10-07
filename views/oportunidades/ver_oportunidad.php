@@ -187,7 +187,7 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
             <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
             <div class="action-buttons">
                 <button type="submit" name="siguiente_estado" value="evaluacion_requisitos" class="btn btn-primary">Proceder a Evaluación de Requisitos</button>
-                <button type="submit" name="siguiente_estado" value="descartada" class="btn btn-danger">Descartar</button>
+                <button type="submit" name="siguiente_estado" value="descartada" class="btn btn-danger btn-discard">Descartar</button>
             </div>
         </form>
     </div>
@@ -213,7 +213,7 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
             </div>
             <div class="action-buttons">
                 <button type="submit" name="siguiente_estado" value="viabilidad_preliminar" class="btn btn-primary">Aprobar y pasar a Viabilidad Preliminar</button>
-                <button type="submit" name="siguiente_estado" value="descartada" class="btn btn-danger">No participar</button>
+                <button type="submit" name="siguiente_estado" value="descartada" class="btn btn-danger btn-discard">No participar</button>
                 <button type="submit" class="btn btn-secondary">Guardar sin avanzar</button>
             </div>
         </form>
@@ -243,7 +243,7 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
             <div class="action-buttons">
                 <!-- Se usa JS para cambiar el valor según el checkbox -->
                 <button type="submit" name="siguiente_estado" value="evaluacion_especializada" id="btnAvanzarViabilidad" class="btn btn-primary">Aprobar Viabilidad</button>
-                <button type="submit" name="siguiente_estado" value="descartada" class="btn btn-danger">No viable</button>
+                <button type="submit" name="siguiente_estado" value="descartada" class="btn btn-danger btn-discard">No viable</button>
             </div>
         </form>
     </div>
@@ -291,7 +291,7 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
             </div>
             <div class="action-buttons">
                 <button type="submit" name="siguiente_estado" value="elaboracion_propuesta" class="btn btn-primary">Confirmar Viabilidad y Elaborar Propuesta</button>
-                <button type="submit" name="siguiente_estado" value="descartada" class="btn btn-danger">No viable</button>
+                <button type="submit" name="siguiente_estado" value="descartada" class="btn btn-danger btn-discard">No viable</button>
             </div>
         </form>
     </div>
@@ -340,7 +340,7 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
             <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
             <div class="action-buttons">
                 <button type="submit" name="siguiente_estado" value="presentada" class="btn btn-success"><i class="fas fa-check"></i> Aprobar Participación / Propuesta</button>
-                <button type="submit" name="siguiente_estado" value="descartada" class="btn btn-danger">Rechazar</button>
+                <button type="submit" name="siguiente_estado" value="descartada" class="btn btn-danger btn-discard">Rechazar</button>
             </div>
         </form>
     </div>
@@ -350,9 +350,16 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
         <h3><i class="fas fa-gavel"></i> 9. Seguimiento y Resultados (Licitaciones)</h3>
         <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
             <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>Seguimiento del Proceso (Consultas, Aclaraciones, Subsanaciones)</label>
+                    <textarea name="observaciones" class="form-control" rows="3" placeholder="Registre aquí si existen observaciones o si se deben preparar subsanaciones..."><?= htmlspecialchars($item['observaciones'] ?? '') ?></textarea>
+                </div>
+            </div>
             <div class="action-buttons">
+                <button type="submit" class="btn btn-secondary">Guardar Seguimiento</button>
                 <button type="submit" name="siguiente_estado" value="adjudicada" class="btn btn-success"><i class="fas fa-trophy"></i> Adjudicada (Buena Pro)</button>
-                <button type="submit" name="siguiente_estado" value="no_adjudicada" class="btn btn-danger">No Adjudicada</button>
+                <button type="submit" name="siguiente_estado" value="no_adjudicada" class="btn btn-danger btn-discard">No Adjudicada</button>
             </div>
         </form>
     </div>
@@ -364,5 +371,45 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
             <?= $item['estado'] === 'adjudicada' ? '<i class="fas fa-trophy"></i> Oportunidad Adjudicada' : '<i class="fas fa-times-circle"></i> Oportunidad Cerrada / Descartada' ?>
         </h2>
         <p class="text-muted mt-2">Esta oportunidad ha finalizado su ciclo BPMN.</p>
+        <?php if (!empty($item['motivo_descarte'])): ?>
+            <div style="margin-top: 20px; background: #fee2e2; border: 1px solid #fca5a5; padding: 15px; border-radius: 8px; text-align: left; color: #991b1b; display: inline-block; max-width: 600px;">
+                <strong>Motivo de cierre:</strong><br>
+                <?= nl2br(htmlspecialchars($item['motivo_descarte'])) ?>
+            </div>
+        <?php endif; ?>
     </div>
 <?php endif; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const discardBtns = document.querySelectorAll('.btn-discard');
+    discardBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('form');
+            const motivo = prompt("Por favor, ingrese el motivo por el que se cierra/descarta esta oportunidad (obligatorio):");
+            if (motivo !== null) {
+                if (motivo.trim() === '') {
+                    alert("Debe ingresar un motivo para poder descartar la oportunidad.");
+                    return;
+                }
+                // Añadir motivo_descarte
+                const inputMotivo = document.createElement('input');
+                inputMotivo.type = 'hidden';
+                inputMotivo.name = 'motivo_descarte';
+                inputMotivo.value = motivo;
+                form.appendChild(inputMotivo);
+                
+                // Añadir el valor del botón pulsado
+                const inputBtn = document.createElement('input');
+                inputBtn.type = 'hidden';
+                inputBtn.name = this.name;
+                inputBtn.value = this.value;
+                form.appendChild(inputBtn);
+                
+                form.submit();
+            }
+        });
+    });
+});
+</script>
