@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../models/EmpresaModel.php';
+require_once __DIR__ . '/../models/ProfesionalModel.php';
 
 class EmpresaController {
     private $model;
