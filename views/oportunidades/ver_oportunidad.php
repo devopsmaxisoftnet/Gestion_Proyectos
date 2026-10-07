@@ -47,6 +47,13 @@ $estadosFlujo = [
         'icon' => 'fas fa-file-contract',
         'area' => 'Licitaciones'
     ],
+    'preparacion_propuesta' => [
+        'num' => 6,
+        'label' => 'Elaborar Prop.',
+        'title' => 'Elaborar Propuesta Técnica y Económica',
+        'icon' => 'fas fa-file-contract',
+        'area' => 'Licitaciones'
+    ],
     'revision_propuesta' => [
         'num' => 7,
         'label' => 'Revisión Prop.',
@@ -77,18 +84,79 @@ $estadosFlujo = [
     ]
 ];
 
-$keysFlujo = array_keys($estadosFlujo);
-$currentIndex = array_search($item['estado'], $keysFlujo);
-if ($currentIndex === false) $currentIndex = -1;
+// Pasos únicos para el stepper visual
+$stepperPasos = [
+    1 => ['key' => 'identificada', 'label' => 'Identificación', 'title' => '1. Identificación y Clasificación', 'num' => 1],
+    2 => ['key' => 'evaluacion_requisitos', 'label' => 'Requisitos', 'title' => '2. Revisión de Requisitos Mínimos', 'num' => 2],
+    3 => ['key' => 'viabilidad_preliminar', 'label' => 'Viabilidad', 'title' => '3. Viabilidad Preliminar', 'num' => 3],
+    4 => ['key' => 'evaluacion_especializada', 'label' => 'Especializada', 'title' => '4. Evaluación Especializada', 'num' => 4],
+    5 => ['key' => 'consolidacion_viable', 'label' => 'Consolidación', 'title' => '5. Consolidar Evaluación', 'num' => 5],
+    6 => ['key' => 'elaboracion_propuesta', 'label' => 'Elaborar Prop.', 'title' => '6. Elaborar Propuesta Técnica y Económica', 'num' => 6],
+    7 => ['key' => 'revision_propuesta', 'label' => 'Revisión Prop.', 'title' => '7. Revisión y Validación de Propuesta', 'num' => 7],
+    8 => ['key' => 'aprobacion_gerencia', 'label' => 'Gerencia', 'title' => '8. Aprobación de Gerencia General / CEO', 'num' => 8],
+    9 => ['key' => 'presentada', 'label' => 'Seguimiento', 'title' => '9. Seguimiento y Resultados', 'num' => 9],
+    10 => ['key' => 'adjudicada', 'label' => 'Adjudicación', 'title' => '10. Adjudicada (Buena Pro)', 'num' => 10],
+];
 
+// Mapeo de estado actual a número de paso 1..10
+$estadoToStep = [
+    'identificada' => 1,
+    'evaluacion_requisitos' => 2,
+    'viabilidad_preliminar' => 3,
+    'evaluacion_especializada' => 4,
+    'consolidacion_viable' => 5,
+    'elaboracion_propuesta' => 6,
+    'preparacion_propuesta' => 6,
+    'revision_propuesta' => 7,
+    'aprobacion_gerencia' => 8,
+    'presentada' => 9,
+    'adjudicada' => 10,
+    'no_adjudicada' => 10,
+    'descartada' => 10,
+];
+
+$currentStepNum = $estadoToStep[$item['estado']] ?? 1;
 $isClosed = in_array($item['estado'], ['descartada', 'no_adjudicada', 'adjudicada']);
 
 if ($item['estado'] === 'adjudicada') {
     $progressPct = 100;
-} elseif ($currentIndex >= 0) {
-    $progressPct = round((($currentIndex + 1) / 10) * 100);
+} elseif ($isClosed) {
+    $progressPct = round(($currentStepNum / 10) * 100);
 } else {
-    $progressPct = 0;
+    $progressPct = round(($currentStepNum / 10) * 100);
+}
+
+// Función auxiliar para renderizar el uploader de documentos BPMN
+function renderDocUpload($name, $label, $currentPath = null, $desc = 'Adjunte documento en PDF, Word, Excel o Imagen') {
+    ?>
+    <div class="op-doc-field">
+        <label class="op-doc-label"><i class="fas fa-file-invoice text-primary"></i> <?= $label ?></label>
+        
+        <?php if (!empty($currentPath)): ?>
+            <div class="op-current-doc">
+                <a href="<?= BASE_URL ?>/<?= htmlspecialchars($currentPath) ?>" target="_blank" class="op-doc-link" title="Abrir archivo adjunto">
+                    <i class="fas fa-file-pdf"></i>
+                    <span class="op-doc-filename"><?= htmlspecialchars(basename($currentPath)) ?></span>
+                    <span class="op-doc-tag"><i class="fas fa-eye"></i> Ver documento</span>
+                </a>
+            </div>
+        <?php endif; ?>
+
+        <div class="op-upload-dropzone <?= !empty($currentPath) ? 'is-replace' : '' ?>">
+            <input type="file" name="<?= $name ?>" id="input_<?= $name ?>" class="op-file-native" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" onchange="actualizarNombreDoc(this)">
+            <div class="op-dropzone-content">
+                <div class="op-dropzone-icon">
+                    <i class="fas <?= !empty($currentPath) ? 'fa-arrows-rotate' : 'fa-cloud-arrow-up' ?>"></i>
+                </div>
+                <div class="op-dropzone-text">
+                    <strong class="op-dropzone-title"><?= !empty($currentPath) ? 'Reemplazar archivo adjunto' : 'Seleccionar o arrastrar documento / informe' ?></strong>
+                    <span class="op-dropzone-sub"><?= $desc ?> (Máx. 25MB)</span>
+                </div>
+            </div>
+            <div class="op-file-name-display" id="display_<?= $name ?>"></div>
+        </div>
+    </div>
+    <?php
 }
 ?>
 
@@ -98,7 +166,7 @@ if ($item['estado'] === 'adjudicada') {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    padding: <?= $isModal ? '14px 16px 28px' : '20px 24px 40px' ?>;
+    padding: <?= $isModal ? '14px 18px 30px' : '20px 24px 40px' ?>;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     color: #1e293b;
     line-height: 1.5;
@@ -497,6 +565,174 @@ if ($item['estado'] === 'adjudicada') {
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
 }
 
+/* Custom Modern File Upload Dropzone */
+.op-doc-field {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+}
+.op-doc-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 8px;
+    letter-spacing: 0.2px;
+}
+.op-doc-label i {
+    color: #6366f1;
+    font-size: 13px;
+}
+.op-current-doc {
+    margin-bottom: 8px;
+}
+.op-doc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: #5b21b6;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    max-width: 100%;
+}
+.op-doc-link:hover {
+    background: #ede9fe;
+    color: #4c1d95;
+    transform: translateY(-1px);
+}
+.op-doc-link i.fa-file-pdf {
+    color: #ef4444;
+}
+.op-doc-filename {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 320px;
+}
+.op-doc-tag {
+    font-size: 10px;
+    background: #7c3aed;
+    color: #fff;
+    padding: 2px 7px;
+    border-radius: 12px;
+    margin-left: 6px;
+}
+
+.op-upload-dropzone {
+    background: #f8fafc;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 9px;
+    padding: 10px 14px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.op-upload-dropzone:hover {
+    border-color: #6366f1;
+    background: #fbf9ff;
+}
+.op-upload-dropzone.has-file {
+    border-color: #10b981;
+    border-style: solid;
+    background: #f0fdf4;
+}
+.op-file-native {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 5;
+}
+.op-dropzone-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    pointer-events: none;
+}
+.op-dropzone-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #ede9fe;
+    color: #7c3aed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+.op-upload-dropzone:hover .op-dropzone-icon {
+    transform: scale(1.08);
+}
+.op-dropzone-text {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+.op-dropzone-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e293b;
+}
+.op-dropzone-sub {
+    font-size: 10.5px;
+    color: #64748b;
+}
+.op-file-name-display {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #059669;
+    background: #dcfce7;
+    padding: 3px 10px;
+    border-radius: 6px;
+    border: 1px solid #86efac;
+    width: calc(100% - 20px);
+    box-sizing: border-box;
+    justify-content: center;
+}
+
+/* Document Preview Box in Review stages */
+.op-doc-preview-box {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.op-doc-preview-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 /* Alert Toggle Card (Paso 3) */
 .op-alert-card {
     background: #fffbeb;
@@ -723,7 +959,7 @@ if ($item['estado'] === 'adjudicada') {
             </div>
             <div class="op-step-counter">
                 <?php if (!$isClosed): ?>
-                    Etapa <strong><?= ($currentIndex + 1) ?></strong> de 10
+                    Etapa <strong><?= $currentStepNum ?></strong> de 10
                 <?php else: ?>
                     <?= $item['estado'] === 'adjudicada' ? '🏆 Adjudicada' : 'Cerrada' ?>
                 <?php endif; ?>
@@ -757,7 +993,7 @@ if ($item['estado'] === 'adjudicada') {
         <div class="op-stepper-header">
             <span class="op-stepper-title">
                 <i class="fas fa-project-diagram"></i> 
-                Etapa actual: <strong><?= isset($estadosFlujo[$item['estado']]) ? $estadosFlujo[$item['estado']]['title'] : 'Cerrada' ?></strong>
+                Etapa actual: <strong><?= isset($stepperPasos[$currentStepNum]) ? $stepperPasos[$currentStepNum]['title'] : 'Cerrada' ?></strong>
             </span>
             <span class="op-stepper-pct"><?= $progressPct ?>%</span>
         </div>
@@ -768,10 +1004,9 @@ if ($item['estado'] === 'adjudicada') {
 
         <div class="op-step-pills-wrap" id="stepPillsTrack">
             <?php 
-            $i = 0;
-            foreach ($estadosFlujo as $key => $st): 
-                $isPassed = ($i < $currentIndex);
-                $isCurrent = ($i === $currentIndex);
+            foreach ($stepperPasos as $stepIndex => $st): 
+                $isPassed = ($stepIndex < $currentStepNum);
+                $isCurrent = ($stepIndex === $currentStepNum);
                 $pillClass = $isPassed ? 'completed' : ($isCurrent ? 'active' : 'pending');
             ?>
             <div class="op-pill <?= $pillClass ?>" <?= $isCurrent ? 'id="activeStepPill"' : '' ?> title="<?= $st['title'] ?>">
@@ -785,13 +1020,14 @@ if ($item['estado'] === 'adjudicada') {
                 <?php if ($isCurrent): ?><span class="op-pulse"></span><?php endif; ?>
                 <span><?= $st['label'] ?></span>
             </div>
-            <?php $i++; endforeach; ?>
+            <?php endforeach; ?>
         </div>
     </div>
 
     <!-- 3. ACTION / STAGE WORKFLOW CARD -->
     <?php if (!$isClosed): ?>
         
+        <!-- ETAPA 1: IDENTIFICACIÓN Y CLASIFICACIÓN -->
         <?php if ($item['estado'] === 'identificada'): ?>
         <div class="op-stage-card">
             <div class="op-stage-header">
@@ -804,10 +1040,10 @@ if ($item['estado'] === 'adjudicada') {
 
             <div class="op-guide-banner">
                 <i class="fas fa-info-circle"></i>
-                <span>La oportunidad ha sido detectada y registrada en el sistema. Para continuar el flujo BPMN, clasifíquela y proceda a la revisión de requisitos mínimos.</span>
+                <span>La oportunidad ha sido detectada y registrada en el sistema CRM. Para continuar el flujo BPMN, verifique los datos y proceda a la revisión de requisitos mínimos.</span>
             </div>
 
-            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
+            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>" enctype="multipart/form-data">
                 <?php if ($isModal): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?>
                 <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
                 
@@ -822,6 +1058,7 @@ if ($item['estado'] === 'adjudicada') {
             </form>
         </div>
 
+        <!-- ETAPA 2: REVISIÓN DE REQUISITOS MÍNIMOS -->
         <?php elseif ($item['estado'] === 'evaluacion_requisitos'): ?>
         <div class="op-stage-card">
             <div class="op-stage-header">
@@ -834,10 +1071,10 @@ if ($item['estado'] === 'adjudicada') {
 
             <div class="op-guide-banner">
                 <i class="fas fa-info-circle"></i>
-                <span>Verifique el cumplimiento de bases, aspectos legales y cronograma antes de comprometer recursos en la etapa de viabilidad.</span>
+                <span>Verifique el cumplimiento de bases, aspectos legales y cronograma. Adjunte el pliego de Bases o TDR del concurso para el expediente.</span>
             </div>
 
-            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
+            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>" enctype="multipart/form-data">
                 <?php if ($isModal): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?>
                 <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
 
@@ -867,6 +1104,9 @@ if ($item['estado'] === 'adjudicada') {
                     </label>
                 </div>
 
+                <!-- DOCUMENTO: BASES / TDR -->
+                <?php renderDocUpload('doc_bases_tdr', 'Documento de Bases / Términos de Referencia (TDR)', $eval['doc_bases_tdr'] ?? null, 'Adjunte bases administrativas, pliego o TDR (PDF o imagen)'); ?>
+
                 <div class="op-actions-bar">
                     <button type="submit" name="siguiente_estado" value="viabilidad_preliminar" class="btn-op btn-op-primary">
                         <i class="fas fa-arrow-right"></i> Aprobar y pasar a Viabilidad Preliminar
@@ -881,6 +1121,7 @@ if ($item['estado'] === 'adjudicada') {
             </form>
         </div>
 
+        <!-- ETAPA 3: VIABILIDAD PRELIMINAR -->
         <?php elseif ($item['estado'] === 'viabilidad_preliminar'): ?>
         <div class="op-stage-card">
             <div class="op-stage-header">
@@ -893,10 +1134,10 @@ if ($item['estado'] === 'adjudicada') {
 
             <div class="op-guide-banner">
                 <i class="fas fa-info-circle"></i>
-                <span>Evalúe el alcance, los plazos y los riesgos del proyecto para determinar si requiere un análisis especializado o pasa a consolidación.</span>
+                <span>Evalúe el alcance, los plazos y los riesgos del proyecto para determinar si requiere un análisis especializado o pasa directamente a consolidación.</span>
             </div>
 
-            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
+            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>" enctype="multipart/form-data">
                 <?php if ($isModal): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?>
                 <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
 
@@ -941,6 +1182,7 @@ if ($item['estado'] === 'adjudicada') {
             })();
         </script>
 
+        <!-- ETAPA 4: EVALUACIÓN ESPECIALIZADA -->
         <?php elseif ($item['estado'] === 'evaluacion_especializada'): ?>
         <div class="op-stage-card">
             <div class="op-stage-header">
@@ -953,31 +1195,39 @@ if ($item['estado'] === 'adjudicada') {
 
             <div class="op-guide-banner">
                 <i class="fas fa-info-circle"></i>
-                <span>Ingrese los informes técnico y económico detallados por parte de los especialistas asignados.</span>
+                <span>Ingrese los análisis técnico y económico, y adjunte los informes sustentatorios correspondientes emitidos por los especialistas.</span>
             </div>
 
-            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
+            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>" enctype="multipart/form-data">
                 <?php if ($isModal): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?>
                 <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
 
                 <div class="op-form-group">
-                    <label><i class="fas fa-cogs text-primary"></i> Análisis Técnico (Consultoría: Alcance, metodología, personal)</label>
-                    <textarea name="informe_tecnico" class="op-textarea" rows="3" placeholder="Registre la metodología técnica propuesta..."><?= htmlspecialchars($eval['informe_tecnico'] ?? '') ?></textarea>
+                    <label><i class="fas fa-cogs text-primary"></i> Análisis Técnico (Consultoría: Metodología, alcance, personal)</label>
+                    <textarea name="informe_tecnico" class="op-textarea" rows="2" placeholder="Resumen de la metodología técnica propuesta..."><?= htmlspecialchars($eval['informe_tecnico'] ?? '') ?></textarea>
                 </div>
+                <!-- DOCUMENTO: INFORME TÉCNICO -->
+                <?php renderDocUpload('doc_informe_tecnico', 'Informe Técnico de Ingeniería / Consultoría (PDF / Imagen)', $eval['doc_informe_tecnico'] ?? null, 'Adjunte el informe técnico detallado emitido por Consultoría'); ?>
 
-                <div class="op-form-group">
-                    <label><i class="fas fa-chart-line text-primary"></i> Evaluación Económica (Costos, margen y flujo de caja)</label>
-                    <textarea name="informe_economico" class="op-textarea" rows="3" placeholder="Registre los costos estimados, margen esperado..."><?= htmlspecialchars($eval['informe_economico'] ?? '') ?></textarea>
+                <div class="op-form-group" style="margin-top:14px;">
+                    <label><i class="fas fa-chart-line text-primary"></i> Evaluación Económica (Licitaciones: Costos, margen, flujo de caja)</label>
+                    <textarea name="informe_economico" class="op-textarea" rows="2" placeholder="Resumen de costos estimados y rentabilidad..."><?= htmlspecialchars($eval['informe_economico'] ?? '') ?></textarea>
                 </div>
+                <!-- DOCUMENTO: EVALUACIÓN ECONÓMICA -->
+                <?php renderDocUpload('doc_evaluacion_economica', 'Evaluación Económica / Estructura de Costos (PDF / Excel / Imagen)', $eval['doc_evaluacion_economica'] ?? null, 'Adjunte la plantilla o informe económico'); ?>
 
                 <div class="op-actions-bar">
                     <button type="submit" name="siguiente_estado" value="consolidacion_viable" class="btn-op btn-op-primary">
                         <i class="fas fa-arrow-right"></i> Enviar a Consolidación
                     </button>
+                    <button type="submit" class="btn-op btn-op-secondary">
+                        <i class="fas fa-save"></i> Guardar Avance
+                    </button>
                 </div>
             </form>
         </div>
 
+        <!-- ETAPA 5: CONSOLIDAR EVALUACIÓN -->
         <?php elseif ($item['estado'] === 'consolidacion_viable'): ?>
         <div class="op-stage-card">
             <div class="op-stage-header">
@@ -990,21 +1240,27 @@ if ($item['estado'] === 'adjudicada') {
 
             <div class="op-guide-banner">
                 <i class="fas fa-info-circle"></i>
-                <span>Consolide los informes técnico, económico y legal para confirmar la viabilidad final y autorizar la elaboración de la oferta.</span>
+                <span>Consolide los informes técnico, económico y legal. Adjunte el Informe de Evaluación Consolidada para autorizar la preparación de la propuesta.</span>
             </div>
 
-            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
+            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>" enctype="multipart/form-data">
                 <?php if ($isModal): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?>
                 <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
 
                 <div class="op-form-group">
-                    <label><i class="fas fa-file-alt text-primary"></i> Informe de Evaluación Consolidada Técnica, Económica y Legal</label>
+                    <label><i class="fas fa-file-alt text-primary"></i> Dictamen Consolidado Técnico, Económico y Legal</label>
                     <textarea name="consolidacion_informe" class="op-textarea" rows="3" placeholder="Resumen del dictamen consolidado para pasar a elaboración de propuesta..."><?= htmlspecialchars($eval['consolidacion_informe'] ?? '') ?></textarea>
                 </div>
+
+                <!-- DOCUMENTO: INFORME DE EVALUACIÓN CONSOLIDADA -->
+                <?php renderDocUpload('doc_informe_evaluacion', 'Informe de Evaluación Consolidada (PDF / Documento)', $eval['doc_informe_evaluacion'] ?? null, 'Adjunte el informe o dictamen consolidado final'); ?>
 
                 <div class="op-actions-bar">
                     <button type="submit" name="siguiente_estado" value="elaboracion_propuesta" class="btn-op btn-op-primary">
                         <i class="fas fa-arrow-right"></i> Confirmar Viabilidad y Elaborar Propuesta
+                    </button>
+                    <button type="submit" class="btn-op btn-op-secondary">
+                        <i class="fas fa-save"></i> Guardar Informe
                     </button>
                     <button type="submit" name="siguiente_estado" value="descartada" class="btn-op btn-op-danger btn-discard">
                         <i class="fas fa-ban"></i> No viable
@@ -1013,7 +1269,8 @@ if ($item['estado'] === 'adjudicada') {
             </form>
         </div>
 
-        <?php elseif ($item['estado'] === 'elaboracion_propuesta'): ?>
+        <!-- ETAPA 6: ELABORAR PROPUESTA TÉCNICA Y ECONÓMICA -->
+        <?php elseif ($item['estado'] === 'elaboracion_propuesta' || $item['estado'] === 'preparacion_propuesta'): ?>
         <div class="op-stage-card">
             <div class="op-stage-header">
                 <div class="op-stage-icon-box"><i class="fas fa-file-contract"></i></div>
@@ -1025,21 +1282,33 @@ if ($item['estado'] === 'adjudicada') {
 
             <div class="op-guide-banner">
                 <i class="fas fa-info-circle"></i>
-                <span>La oportunidad ha sido confirmada como viable. Proceda con la redacción y armado de la propuesta oficial para enviarla a revisión interna.</span>
+                <span>La oportunidad es viable. Formule la propuesta oficial y <strong>adjunte el expediente de la propuesta (PDF o documento)</strong> para que las áreas técnicas y de proyectos la revisen.</span>
             </div>
 
-            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
+            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>" enctype="multipart/form-data">
                 <?php if ($isModal): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?>
                 <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
+
+                <div class="op-form-group">
+                    <label><i class="fas fa-align-left text-primary"></i> Resumen / Observaciones de la Oferta Formulada</label>
+                    <textarea name="observaciones" class="op-textarea" rows="2" placeholder="Resumen de la propuesta técnica, montos ofertados, componentes clave..."><?= htmlspecialchars($item['observaciones'] ?? '') ?></textarea>
+                </div>
+
+                <!-- DOCUMENTO CLAVE: EXPEDIENTE DE LA PROPUESTA (PDF / DOCUMENTO) -->
+                <?php renderDocUpload('doc_propuesta', '📄 Documento de la Propuesta Oficial (Técnica y Económica)', $eval['doc_propuesta'] ?? null, 'Adjunte la propuesta final en PDF, Word o comprimido'); ?>
 
                 <div class="op-actions-bar">
                     <button type="submit" name="siguiente_estado" value="revision_propuesta" class="btn-op btn-op-primary">
                         <i class="fas fa-paper-plane"></i> Enviar a Revisión de Propuesta
                     </button>
+                    <button type="submit" class="btn-op btn-op-secondary">
+                        <i class="fas fa-save"></i> Guardar Propuesta
+                    </button>
                 </div>
             </form>
         </div>
 
+        <!-- ETAPA 7: REVISIÓN Y VALIDACIÓN DE PROPUESTA -->
         <?php elseif ($item['estado'] === 'revision_propuesta'): ?>
         <div class="op-stage-card">
             <div class="op-stage-header">
@@ -1052,31 +1321,51 @@ if ($item['estado'] === 'adjudicada') {
 
             <div class="op-guide-banner">
                 <i class="fas fa-info-circle"></i>
-                <span>Valide que la oferta cumpla con los estándares técnicos y la rentabilidad esperada antes de remitirla a Gerencia General.</span>
+                <span>Descargue y revise la propuesta formulada en la etapa anterior. Ingrese los vistos buenos técnico y económico para enviar a Gerencia.</span>
             </div>
 
-            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
+            <!-- Previsualización / enlace a la propuesta cargada -->
+            <?php if (!empty($eval['doc_propuesta'])): ?>
+            <div class="op-doc-preview-box">
+                <div class="op-doc-preview-info">
+                    <i class="fas fa-file-contract" style="font-size:22px; color:#6366f1;"></i>
+                    <div>
+                        <strong style="font-size:12.5px; color:#1e293b;">Propuesta formulada en Etapa 6</strong><br>
+                        <span style="font-size:11px; color:#64748b;"><?= htmlspecialchars(basename($eval['doc_propuesta'])) ?></span>
+                    </div>
+                </div>
+                <a href="<?= BASE_URL ?>/<?= htmlspecialchars($eval['doc_propuesta']) ?>" target="_blank" class="op-doc-link">
+                    <i class="fas fa-download"></i> Descargar / Revisar Propuesta
+                </a>
+            </div>
+            <?php endif; ?>
+
+            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>" enctype="multipart/form-data">
                 <?php if ($isModal): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?>
                 <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
 
                 <div class="op-form-group">
                     <label><i class="fas fa-check-circle text-primary"></i> Revisión y Validación Técnica (Consultorías)</label>
-                    <textarea name="revision_tecnica" class="op-textarea" rows="2" placeholder="Observaciones o visto bueno técnico..."><?= htmlspecialchars($eval['revision_tecnica'] ?? '') ?></textarea>
+                    <textarea name="revision_tecnica" class="op-textarea" rows="2" placeholder="Observaciones o conformidad técnica sobre la propuesta..."><?= htmlspecialchars($eval['revision_tecnica'] ?? '') ?></textarea>
                 </div>
 
                 <div class="op-form-group">
                     <label><i class="fas fa-dollar-sign text-primary"></i> Revisión y Validación Económica (Gestión de Proyectos)</label>
-                    <textarea name="revision_economica" class="op-textarea" rows="2" placeholder="Validación de precios unitarios y rentabilidad final..."><?= htmlspecialchars($eval['revision_economica'] ?? '') ?></textarea>
+                    <textarea name="revision_economica" class="op-textarea" rows="2" placeholder="Validación de precios unitarios, margen y rentabilidad..."><?= htmlspecialchars($eval['revision_economica'] ?? '') ?></textarea>
                 </div>
 
                 <div class="op-actions-bar">
                     <button type="submit" name="siguiente_estado" value="aprobacion_gerencia" class="btn-op btn-op-primary">
                         <i class="fas fa-share"></i> Validar y Enviar a Gerencia General
                     </button>
+                    <button type="submit" class="btn-op btn-op-secondary">
+                        <i class="fas fa-save"></i> Guardar Validaciones
+                    </button>
                 </div>
             </form>
         </div>
 
+        <!-- ETAPA 8: APROBACIÓN DE GERENCIA GENERAL / CEO -->
         <?php elseif ($item['estado'] === 'aprobacion_gerencia'): ?>
         <div class="op-stage-card">
             <div class="op-stage-header">
@@ -1086,6 +1375,27 @@ if ($item['estado'] === 'adjudicada') {
                     <span class="op-stage-subtitle"><i class="fas fa-sitemap"></i> Área: Dirección General</span>
                 </div>
             </div>
+
+            <div class="op-guide-banner">
+                <i class="fas fa-info-circle"></i>
+                <span>Gerencia General revisa los dictámenes y la propuesta final para autorizar la participación y presentación de la oferta.</span>
+            </div>
+
+            <!-- Previsualización / enlace a la propuesta cargada -->
+            <?php if (!empty($eval['doc_propuesta'])): ?>
+            <div class="op-doc-preview-box">
+                <div class="op-doc-preview-info">
+                    <i class="fas fa-file-contract" style="font-size:22px; color:#6366f1;"></i>
+                    <div>
+                        <strong style="font-size:12.5px; color:#1e293b;">Propuesta lista para presentar</strong><br>
+                        <span style="font-size:11px; color:#64748b;"><?= htmlspecialchars(basename($eval['doc_propuesta'])) ?></span>
+                    </div>
+                </div>
+                <a href="<?= BASE_URL ?>/<?= htmlspecialchars($eval['doc_propuesta']) ?>" target="_blank" class="op-doc-link">
+                    <i class="fas fa-eye"></i> Ver Expediente
+                </a>
+            </div>
+            <?php endif; ?>
 
             <div class="op-recap-box">
                 <div class="op-recap-item">
@@ -1098,13 +1408,13 @@ if ($item['estado'] === 'adjudicada') {
                 </div>
             </div>
 
-            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
+            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>" enctype="multipart/form-data">
                 <?php if ($isModal): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?>
                 <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
 
                 <div class="op-actions-bar">
                     <button type="submit" name="siguiente_estado" value="presentada" class="btn-op btn-op-success">
-                        <i class="fas fa-check-double"></i> Aprobar Participación y Presentación
+                        <i class="fas fa-check-double"></i> Aprobar Participación y Presentar Propuesta
                     </button>
                     <button type="submit" name="siguiente_estado" value="descartada" class="btn-op btn-op-danger btn-discard">
                         <i class="fas fa-times-circle"></i> Rechazar Oferta
@@ -1113,6 +1423,7 @@ if ($item['estado'] === 'adjudicada') {
             </form>
         </div>
 
+        <!-- ETAPA 9: SEGUIMIENTO Y RESULTADOS -->
         <?php elseif ($item['estado'] === 'presentada'): ?>
         <div class="op-stage-card">
             <div class="op-stage-header">
@@ -1125,21 +1436,27 @@ if ($item['estado'] === 'adjudicada') {
 
             <div class="op-guide-banner">
                 <i class="fas fa-info-circle"></i>
-                <span>La propuesta ha sido presentada formalmente. Registre observaciones, consultas, aclaraciones o subsanaciones mientras se espera la publicación de la Buena Pro.</span>
+                <span>La propuesta ha sido presentada formalmente. Adjunte la constancia de presentación o pliego de subsanaciones mientras se espera la publicación de la Buena Pro.</span>
             </div>
 
-            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
+            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>" enctype="multipart/form-data">
                 <?php if ($isModal): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?>
                 <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
 
-                <div class="op-form-group">
-                    <label><i class="fas fa-clipboard-list text-primary"></i> Bitácora de Seguimiento (Subsanaciones / Observaciones)</label>
-                    <textarea name="observaciones" class="op-textarea" rows="3" placeholder="Registre incidencias, subsanaciones presentadas o estado de apertura de sobres..."><?= htmlspecialchars($item['observaciones'] ?? '') ?></textarea>
+                <!-- DOCUMENTO: CONSTANCIA DE PRESENTACIÓN -->
+                <?php renderDocUpload('doc_constancia_presentacion', '📄 Constancia / Cargo de Presentación (SEACE o Mesa de Partes)', $eval['doc_constancia_presentacion'] ?? null, 'Adjunte el cargo oficial generado'); ?>
+
+                <div class="op-form-group" style="margin-top:14px;">
+                    <label><i class="fas fa-clipboard-list text-primary"></i> Bitácora de Seguimiento (Subsanaciones / Consultas)</label>
+                    <textarea name="observaciones" class="op-textarea" rows="2" placeholder="Registre incidencias, fechas de apertura de sobres o requerimientos de subsanación..."><?= htmlspecialchars($item['observaciones'] ?? '') ?></textarea>
                 </div>
+
+                <!-- DOCUMENTO: SUBSANACIONES (SI HUBIERON) -->
+                <?php renderDocUpload('doc_subsanacion', '📄 Documento de Subsanaciones / Aclaraciones (Si aplica)', $eval['doc_subsanacion'] ?? null, 'Adjunte el pliego de subsanación presentado si hubieron observaciones'); ?>
 
                 <div class="op-actions-bar">
                     <button type="submit" class="btn-op btn-op-secondary">
-                        <i class="fas fa-save"></i> Guardar Bitácora
+                        <i class="fas fa-save"></i> Guardar Seguimiento
                     </button>
                     <button type="submit" name="siguiente_estado" value="adjudicada" class="btn-op btn-op-success">
                         <i class="fas fa-trophy"></i> Adjudicada (Buena Pro Ganada)
@@ -1160,25 +1477,64 @@ if ($item['estado'] === 'adjudicada') {
             </div>
             
             <h3 class="op-closed-title" style="color: <?= $item['estado'] === 'adjudicada' ? '#059669' : '#dc2626' ?>;">
-                <?= $item['estado'] === 'adjudicada' ? '¡Oportunidad Adjudicada (Buena Pro)!' : 'Oportunidad Cerrada / Descartada' ?>
+                <?= $item['estado'] === 'adjudicada' ? '¡Oportunidad Adjudicada (Buena Pro Ganada)!' : 'Oportunidad Cerrada / Descartada' ?>
             </h3>
             
             <p class="op-closed-desc">
-                <?= $item['estado'] === 'adjudicada' ? 'El proceso concluyó con éxito y la propuesta fue ganadora. Se procede a la fase de suscripción de contrato.' : 'Esta oportunidad fue cerrada y no continuará en el flujo comercial activo.' ?>
+                <?= $item['estado'] === 'adjudicada' ? 'El proceso concluyó con éxito y la propuesta fue ganadora. Adjunte el acta de adjudicación y contrato firmado para la transición a ejecución de proyectos.' : 'Esta oportunidad fue cerrada y no continuará en el flujo comercial activo.' ?>
             </p>
 
-            <?php if (!empty($item['motivo_descarte'])): ?>
-                <div class="op-motivo-box">
-                    <strong><i class="fas fa-exclamation-circle"></i> Motivo de cierre registrado:</strong><br>
-                    <?= nl2br(htmlspecialchars($item['motivo_descarte'])) ?>
-                </div>
-            <?php endif; ?>
+            <!-- Documentos de cierre o formalización -->
+            <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>" enctype="multipart/form-data" style="text-align:left; max-width:620px; margin:0 auto;">
+                <?php if ($isModal): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?>
+                <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
+
+                <?php if ($item['estado'] === 'adjudicada'): ?>
+                    <?php renderDocUpload('doc_acta_adjudicacion', '📄 Acta de Otorgamiento de Buena Pro / Adjudicación', $eval['doc_acta_adjudicacion'] ?? null, 'Resolución o acta de adjudicación oficial'); ?>
+                    <?php renderDocUpload('doc_contrato_garantias', '📄 Contrato Firmado, Garantías y Carta Fianza', $eval['doc_contrato_garantias'] ?? null, 'Expediente contractual formalizado'); ?>
+                    
+                    <div style="text-align:center; margin-top:14px;">
+                        <button type="submit" class="btn-op btn-op-success">
+                            <i class="fas fa-save"></i> Guardar Documentos Contractuales
+                        </button>
+                    </div>
+                <?php else: ?>
+                    <?php if (!empty($item['motivo_descarte'])): ?>
+                        <div class="op-motivo-box" style="margin-bottom:14px; width:100%; box-sizing:border-box;">
+                            <strong><i class="fas fa-exclamation-circle"></i> Motivo de cierre registrado:</strong><br>
+                            <?= nl2br(htmlspecialchars($item['motivo_descarte'])) ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php renderDocUpload('doc_cierre', '📄 Sustento Documental de Cierre / Descarte', $eval['doc_cierre'] ?? null, 'Notificación o informe de no adjudicación'); ?>
+                    
+                    <div style="text-align:center; margin-top:14px;">
+                        <button type="submit" class="btn-op btn-op-secondary">
+                            <i class="fas fa-save"></i> Guardar Sustento de Cierre
+                        </button>
+                    </div>
+                <?php endif; ?>
+            </form>
         </div>
     <?php endif; ?>
 
 </div>
 
 <script>
+// Manejador visual interactivo al seleccionar un archivo
+function actualizarNombreDoc(input) {
+    if (!input || !input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    const display = document.getElementById('display_' + input.name);
+    const dropzone = input.closest('.op-upload-dropzone');
+    if (display) {
+        display.innerHTML = '<i class="fas fa-check-circle"></i> Archivo seleccionado: ' + file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
+        display.style.display = 'inline-flex';
+    }
+    if (dropzone) {
+        dropzone.classList.add('has-file');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // 1. Auto-scroll al paso activo en el stepper horizontal
     const activePill = document.getElementById('activeStepPill');

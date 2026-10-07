@@ -138,6 +138,37 @@ class OportunidadController {
             if (isset($_POST['revision_tecnica'])) $eval_data['revision_tecnica'] = $_POST['revision_tecnica'];
             if (isset($_POST['revision_economica'])) $eval_data['revision_economica'] = $_POST['revision_economica'];
             
+            // Procesamiento de documentos e informes adjuntos (PDF, imagen, etc.) según flujo BPMN
+            $doc_fields = [
+                'doc_bases_tdr',
+                'doc_informe_tecnico',
+                'doc_evaluacion_economica',
+                'doc_informe_evaluacion',
+                'doc_propuesta',
+                'doc_constancia_presentacion',
+                'doc_subsanacion',
+                'doc_acta_adjudicacion',
+                'doc_contrato_garantias',
+                'doc_cierre'
+            ];
+
+            $upload_dir = 'uploads/oportunidades/';
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0777, true);
+            }
+
+            foreach ($doc_fields as $field) {
+                if (!empty($_FILES[$field]['name']) && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
+                    $orig_name = basename($_FILES[$field]['name']);
+                    $clean_name = preg_replace('/[^a-zA-Z0-9_\.-]/', '_', $orig_name);
+                    $filename = time() . '_' . $id . '_' . $field . '_' . $clean_name;
+                    $target_file = $upload_dir . $filename;
+                    if (move_uploaded_file($_FILES[$field]['tmp_name'], $target_file)) {
+                        $eval_data[$field] = $target_file;
+                    }
+                }
+            }
+            
             if (!empty($eval_data)) {
                 $this->model->updateEvaluacion($id, $eval_data);
             }
