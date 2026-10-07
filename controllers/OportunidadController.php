@@ -101,9 +101,22 @@ class OportunidadController {
         $pageTitle = 'Detalle de oportunidad';
         $currentPage = 'oportunidades';
         
-        include __DIR__ . '/../views/layout/header.php';
+        $isModal = isset($_GET['modal_iframe']) && $_GET['modal_iframe'] == '1';
+        
+        if (!$isModal) {
+            include __DIR__ . '/../views/layout/header.php';
+        } else {
+            // Include a minimal header for modal to have styles
+            echo '<!DOCTYPE html><html><head><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"><link href="' . BASE_URL . '/assets/css/styles.css" rel="stylesheet"><style>body{background:#fff;padding:20px;margin:0;}</style></head><body class="is-modal-view">';
+        }
+        
         include __DIR__ . '/../views/oportunidades/ver_oportunidad.php';
-        include __DIR__ . '/../views/layout/footer.php';
+        
+        if (!$isModal) {
+            include __DIR__ . '/../views/layout/footer.php';
+        } else {
+            echo '</body></html>';
+        }
     }
 
     public function procesar_etapa($id) {
@@ -146,7 +159,12 @@ class OportunidadController {
                 }
             }
             
-            header('Location: ' . BASE_URL . '/oportunidades/ver/' . $id);
+            $redirectUrl = BASE_URL . '/oportunidades/ver/' . $id;
+            if (isset($_POST['modal_iframe']) && $_POST['modal_iframe'] == '1') {
+                $redirectUrl .= '?modal_iframe=1';
+            }
+            
+            header('Location: ' . $redirectUrl);
             exit;
         }
     }

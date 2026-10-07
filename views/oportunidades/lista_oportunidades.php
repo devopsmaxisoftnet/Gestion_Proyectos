@@ -53,7 +53,7 @@
                 <td><span class="badge <?= getEstadoClass($op['estado']) ?>"><?= getEstadoLabel($op['estado']) ?></span></td>
                 <td>
                     <div class="table-actions">
-                        <a href="<?= BASE_URL ?>/oportunidades/ver/<?= $op['id'] ?>" class="section-action" style="font-size:12px">
+                        <a href="#" onclick="openModal('<?= BASE_URL ?>/oportunidades/ver/<?= $op['id'] ?>?modal_iframe=1'); return false;" class="section-action" style="font-size:12px">
                             Revisar <i class="fas fa-chevron-right"></i>
                         </a>
                     </div>

@@ -184,7 +184,7 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
         <h3><i class="fas fa-search"></i> 1. Identificación y Clasificación (Licitaciones)</h3>
         <p class="text-sm mb-3">La oportunidad ha sido detectada. Para avanzar, asegúrese de clasificarla y enviarla a revisión de requisitos.</p>
         <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
-            <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
+            <?php if(isset($_GET['modal_iframe'])): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?> <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
             <div class="action-buttons">
                 <button type="submit" name="siguiente_estado" value="evaluacion_requisitos" class="btn btn-primary">Proceder a Evaluación de Requisitos</button>
                 <button type="submit" name="siguiente_estado" value="descartada" class="btn btn-danger btn-discard">Descartar</button>
@@ -196,7 +196,7 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
     <div class="workflow-form">
         <h3><i class="fas fa-list-check"></i> 2. Revisión de Requisitos Mínimos (Licitaciones)</h3>
         <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
-            <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
+            <?php if(isset($_GET['modal_iframe'])): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?> <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
             <div class="checklist">
                 <label class="check-item">
                     <input type="checkbox" name="req_bases_tdr" <?= !empty($eval['req_bases_tdr']) ? 'checked' : '' ?>> 
@@ -223,7 +223,7 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
     <div class="workflow-form">
         <h3><i class="fas fa-project-diagram"></i> 3. Viabilidad Preliminar (Gestión de Proyectos)</h3>
         <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
-            <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
+            <?php if(isset($_GET['modal_iframe'])): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?> <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
             <div class="form-grid">
                 <div class="form-group full-width">
                     <label>Evaluación de Alcance</label>
@@ -261,7 +261,7 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
     <div class="workflow-form">
         <h3><i class="fas fa-microscope"></i> 4. Evaluación Especializada (Consultoría y Licitaciones)</h3>
         <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
-            <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
+            <?php if(isset($_GET['modal_iframe'])): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?> <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
             <div class="form-grid">
                 <div class="form-group full-width">
                     <label>Análisis Técnico (Consultoría: Alcance, metodología, personal)</label>
@@ -282,7 +282,7 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
     <div class="workflow-form">
         <h3><i class="fas fa-compress-arrows-alt"></i> 5. Consolidar Evaluación (Licitaciones)</h3>
         <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
-            <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
+            <?php if(isset($_GET['modal_iframe'])): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?> <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
             <div class="form-grid">
                 <div class="form-group full-width">
                     <label>Informe de Evaluación Consolidada Técnica, Económica y Legal</label>
@@ -301,7 +301,7 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
         <h3><i class="fas fa-file-contract"></i> 6. Elaborar Propuesta Técnica y Económica (Licitaciones)</h3>
         <p class="text-sm mb-3">La oportunidad es viable. Procede a elaborar la propuesta oficial.</p>
         <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
-            <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
+            <?php if(isset($_GET['modal_iframe'])): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?> <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
             <div class="action-buttons">
                 <button type="submit" name="siguiente_estado" value="revision_propuesta" class="btn btn-primary"><i class="fas fa-share"></i> Enviar a Revisión de Propuesta</button>
             </div>
@@ -312,7 +312,7 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
     <div class="workflow-form">
         <h3><i class="fas fa-check-double"></i> 7. Revisión y Validación de Propuesta (Consultoría y Proyectos)</h3>
         <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
-            <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
+            <?php if(isset($_GET['modal_iframe'])): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?> <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
             <div class="form-grid">
                 <div class="form-group full-width">
                     <label>Revisión y Validación Técnica (Consultorías)</label>
@@ -337,7 +337,7 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
             <p><strong>Revisión Económica Propuesta:</strong> <?= htmlspecialchars($eval['revision_economica'] ?? 'No ingresada') ?></p>
         </div>
         <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
-            <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
+            <?php if(isset($_GET['modal_iframe'])): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?> <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
             <div class="action-buttons">
                 <button type="submit" name="siguiente_estado" value="presentada" class="btn btn-success"><i class="fas fa-check"></i> Aprobar Participación / Propuesta</button>
                 <button type="submit" name="siguiente_estado" value="descartada" class="btn btn-danger btn-discard">Rechazar</button>
@@ -349,7 +349,7 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
     <div class="workflow-form">
         <h3><i class="fas fa-gavel"></i> 9. Seguimiento y Resultados (Licitaciones)</h3>
         <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
-            <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
+            <?php if(isset($_GET['modal_iframe'])): ?><input type="hidden" name="modal_iframe" value="1"><?php endif; ?> <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
             <div class="form-grid">
                 <div class="form-group full-width">
                     <label>Seguimiento del Proceso (Consultas, Aclaraciones, Subsanaciones)</label>
