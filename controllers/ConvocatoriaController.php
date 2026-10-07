@@ -151,9 +151,10 @@ class ConvocatoriaController {
         $pageTitle = 'Detalle de convocatoria';
         $currentPage = 'convocatorias';
         
-        include __DIR__ . '/../views/layout/header.php';
+        $isAjax = !empty($_GET['ajax']);
+        if (!$isAjax) include __DIR__ . '/../views/layout/header.php';
         include __DIR__ . '/../views/convocatorias/ver_convocatoria.php';
-        include __DIR__ . '/../views/layout/footer.php';
+        if (!$isAjax) include __DIR__ . '/../views/layout/footer.php';
     }
 }
 

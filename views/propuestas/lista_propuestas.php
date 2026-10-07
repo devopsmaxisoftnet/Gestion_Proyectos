@@ -42,7 +42,7 @@
                 <td><span class="badge <?= getEstadoClass($prop['estado']) ?>"><?= getEstadoLabel($prop['estado']) ?></span></td>
                 <td>
                     <div class="table-actions">
-                        <a href="<?= BASE_URL ?>/propuestas/editar/<?= $prop['id'] ?>" class="section-action" style="font-size:12px">
+                        <a href="<?= BASE_URL ?>/propuestas/editar/<?= $prop['id'] ?>" data-side-modal title="Ver Propuesta" class="section-action" style="font-size:12px">
                             Ver <i class="fas fa-chevron-right"></i>
                         </a>
                     </div>

@@ -232,7 +232,7 @@
                 </td>
                 <td>
                     <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px;">
-                        <a href="<?= BASE_URL ?>/convocatorias/ver/<?= $conv['id'] ?>" style="color:var(--gray-600); font-size:13px; font-weight:500; display:flex; align-items:center; gap:4px">
+                        <a href="<?= BASE_URL ?>/convocatorias/ver/<?= $conv['id'] ?>" data-side-modal title="Ver Convocatoria" style="color:var(--gray-600); font-size:13px; font-weight:500; display:flex; align-items:center; gap:4px">
                             <i class="fas fa-eye"></i> Ver
                         </a>
                         <a href="javascript:void(0)" onclick="abrirGlobalModal('Editar Convocatoria', '<?= BASE_URL ?>/convocatorias/editar/<?= $conv['id'] ?>?modal_iframe=1', 'fas fa-pen')" style="color:var(--gray-500); padding:4px" title="Editar convocatoria">

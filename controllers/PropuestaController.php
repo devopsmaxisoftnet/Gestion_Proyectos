@@ -65,9 +65,10 @@ class PropuestaController {
         $pageTitle = 'Editar propuesta';
         $currentPage = 'propuestas';
         
-        include __DIR__ . '/../views/layout/header.php';
+        $isAjax = !empty($_GET['ajax']);
+        if (!$isAjax) include __DIR__ . '/../views/layout/header.php';
         include __DIR__ . '/../views/propuestas/crear_propuesta.php';
-        include __DIR__ . '/../views/layout/footer.php';
+        if (!$isAjax) include __DIR__ . '/../views/layout/footer.php';
     }
     
     public function eliminar($id) {

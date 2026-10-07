@@ -42,7 +42,7 @@
                 <td><span class="badge <?= getEstadoClass($lic['estado']) ?>"><?= getEstadoLabel($lic['estado']) ?></span></td>
                 <td>
                     <div class="table-actions">
-                        <a href="<?= BASE_URL ?>/licitaciones/editar/<?= $lic['id'] ?>" class="btn-icon" title="Editar"><i class="fas fa-pen"></i></a>
+                        <a href="<?= BASE_URL ?>/licitaciones/editar/<?= $lic['id'] ?>" data-side-modal title="Editar Licitación" class="btn-icon"><i class="fas fa-pen"></i></a>
                         <a href="<?= BASE_URL ?>/licitaciones/eliminar/<?= $lic['id'] ?>" class="btn-icon" title="Eliminar" onclick="return confirm('¿Eliminar?')"><i class="fas fa-trash"></i></a>
                     </div>
                 </td>
