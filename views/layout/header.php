@@ -724,7 +724,7 @@ if (in_array($userRol, ['superadmin', 'admin'])) {
     background: #ffffff; 
     border-radius: 20px; 
     width: 100%; 
-    max-width: 600px;
+    max-width: 680px;
     height: 100%; 
     margin: 0;
     display: flex; 
@@ -1852,12 +1852,15 @@ function redimensionarModalIframe() {
         if (!doc || !doc.body) return;
         
         // Elementos clave del contenido
+        const opWrap = doc.querySelector('.op-modal-wrapper');
         const contentArea = doc.querySelector('.content-area') || doc.querySelector('.convocatoria-modal-wrap');
         const formCard = doc.querySelector('.form-card');
         const form = doc.querySelector('form');
         
         let targetHeight = 0;
-        if (contentArea) {
+        if (opWrap) {
+            targetHeight = opWrap.scrollHeight + 30;
+        } else if (contentArea) {
             targetHeight = contentArea.scrollHeight;
         } else if (formCard) {
             targetHeight = formCard.scrollHeight + 15;

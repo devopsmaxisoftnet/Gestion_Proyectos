@@ -53,7 +53,7 @@
                 <td><span class="badge <?= getEstadoClass($op['estado']) ?>"><?= getEstadoLabel($op['estado']) ?></span></td>
                 <td>
                     <div class="table-actions">
-                        <a href="javascript:void(0)" onclick="abrirGlobalModal('Seguimiento de Oportunidad', '<?= BASE_URL ?>/oportunidades/ver/<?= $op['id'] ?>?modal_iframe=1', 'fas fa-chart-line', 'Flujo BPMN')" class="section-action" style="font-size:12px">
+                        <a href="javascript:void(0)" onclick="abrirGlobalModal('Seguimiento BPMN de Oportunidad', '<?= BASE_URL ?>/oportunidades/ver/<?= $op['id'] ?>?modal_iframe=1', 'fas fa-project-diagram', 'Flujo de Licitaciones y Contratos')" class="section-action" style="font-size:12px">
                             Revisar <i class="fas fa-chevron-right"></i>
                         </a>
                     </div>

@@ -106,8 +106,8 @@ class OportunidadController {
         if (!$isModal) {
             include __DIR__ . '/../views/layout/header.php';
         } else {
-            // Include a minimal header for modal to have styles
-            echo '<!DOCTYPE html><html><head><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"><link href="' . BASE_URL . '/assets/css/styles.css" rel="stylesheet"><style>body{background:#fff;padding:20px;margin:0;}</style></head><body class="is-modal-view">';
+            // Include a modern minimal header for modal view with UTF-8 charset
+            echo '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Seguimiento de Oportunidad</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"><link href="' . BASE_URL . '/assets/css/styles.css" rel="stylesheet"><style>body{background:#f8fafc;padding:0;margin:0;font-family:\'Inter\',sans-serif;color:#1e293b;overflow-x:hidden;}::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px;}</style></head><body class="is-modal-view">';
         }
         
         include __DIR__ . '/../views/oportunidades/ver_oportunidad.php';
