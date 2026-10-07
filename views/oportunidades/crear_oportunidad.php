@@ -71,10 +71,10 @@
             </div>
             <?php if ($item): ?>
             <div class="form-group">
-                <label>Estado</label>
+                <label>Estado Principal (Manejo Manual)</label>
                 <select name="estado" class="form-control">
-                    <?php foreach (['detectada','en_evaluacion','participar','no_participar','en_propuesta','adjudicada','no_adjudicada','cerrada'] as $est): ?>
-                    <option value="<?= $est ?>" <?= ($item['estado'] === $est) ? 'selected' : '' ?>><?= getEstadoLabel($est) ?></option>
+                    <?php foreach (['identificada','evaluacion_requisitos','viabilidad_preliminar','evaluacion_especializada','consolidacion_viable','preparacion_propuesta','revision_propuesta','aprobacion_gerencia','presentada','adjudicada','no_adjudicada','descartada'] as $est): ?>
+                    <option value="<?= $est ?>" <?= ($item['estado'] === $est) ? 'selected' : '' ?>><?= ucfirst(str_replace('_', ' ', $est)) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
