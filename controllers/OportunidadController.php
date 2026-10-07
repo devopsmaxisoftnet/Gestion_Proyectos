@@ -121,6 +121,9 @@ class OportunidadController {
             if (isset($_POST['viabilidad_riesgos'])) $eval_data['viabilidad_riesgos'] = $_POST['viabilidad_riesgos'];
             if (isset($_POST['informe_tecnico'])) $eval_data['informe_tecnico'] = $_POST['informe_tecnico'];
             if (isset($_POST['informe_economico'])) $eval_data['informe_economico'] = $_POST['informe_economico'];
+            if (isset($_POST['consolidacion_informe'])) $eval_data['consolidacion_informe'] = $_POST['consolidacion_informe'];
+            if (isset($_POST['revision_tecnica'])) $eval_data['revision_tecnica'] = $_POST['revision_tecnica'];
+            if (isset($_POST['revision_economica'])) $eval_data['revision_economica'] = $_POST['revision_economica'];
             
             if (!empty($eval_data)) {
                 $this->model->updateEvaluacion($id, $eval_data);

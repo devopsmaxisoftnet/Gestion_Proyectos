@@ -4,11 +4,13 @@ $item = $data['oportunidad'];
 $eval = $data['evaluacion'] ?? [];
 $estadosFlujo = [
     'identificada' => 'Identificación',
-    'evaluacion_requisitos' => 'Licitaciones (Requisitos)',
-    'viabilidad_preliminar' => 'Proyectos (Viabilidad)',
-    'evaluacion_especializada' => 'Especializada (Téc/Econ)',
-    'preparacion_propuesta' => 'Propuesta',
-    'aprobacion_gerencia' => 'Aprobación Gerencia',
+    'evaluacion_requisitos' => 'Requisitos',
+    'viabilidad_preliminar' => 'Viabilidad',
+    'evaluacion_especializada' => 'Especializada',
+    'consolidacion_viable' => 'Consolidar',
+    'elaboracion_propuesta' => 'Elaborar Prop.',
+    'revision_propuesta' => 'Revisión Prop.',
+    'aprobacion_gerencia' => 'Gerencia',
     'presentada' => 'Presentada',
     'adjudicada' => 'Adjudicada'
 ];
@@ -249,52 +251,90 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
         const chkEval = document.querySelector('input[name="requiere_eval_especializada"]');
         const btnAvanzar = document.getElementById('btnAvanzarViabilidad');
         chkEval.addEventListener('change', (e) => {
-            btnAvanzar.value = e.target.checked ? 'evaluacion_especializada' : 'aprobacion_gerencia';
+            btnAvanzar.value = e.target.checked ? 'evaluacion_especializada' : 'consolidacion_viable';
         });
         // Run once on load
-        btnAvanzar.value = chkEval.checked ? 'evaluacion_especializada' : 'aprobacion_gerencia';
+        btnAvanzar.value = chkEval.checked ? 'evaluacion_especializada' : 'consolidacion_viable';
     </script>
 
     <?php elseif ($item['estado'] === 'evaluacion_especializada'): ?>
     <div class="workflow-form">
-        <h3><i class="fas fa-microscope"></i> 4. Evaluación Especializada (Consultoría y Finanzas)</h3>
+        <h3><i class="fas fa-microscope"></i> 4. Evaluación Especializada (Consultoría y Licitaciones)</h3>
         <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
             <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
             <div class="form-grid">
                 <div class="form-group full-width">
-                    <label>Informe Técnico (Alcance, metodología, personal)</label>
+                    <label>Análisis Técnico (Consultoría: Alcance, metodología, personal)</label>
                     <textarea name="informe_tecnico" class="form-control" rows="3"><?= htmlspecialchars($eval['informe_tecnico'] ?? '') ?></textarea>
                 </div>
                 <div class="form-group full-width">
-                    <label>Informe Económico (Costos, rentabilidad, flujo de caja)</label>
+                    <label>Evaluación Económica (Licitaciones: Costos, rentabilidad, flujo de caja)</label>
                     <textarea name="informe_economico" class="form-control" rows="3"><?= htmlspecialchars($eval['informe_economico'] ?? '') ?></textarea>
                 </div>
             </div>
             <div class="action-buttons">
-                <button type="submit" name="siguiente_estado" value="preparacion_propuesta" class="btn btn-primary">Consolidar y Preparar Propuesta</button>
+                <button type="submit" name="siguiente_estado" value="consolidacion_viable" class="btn btn-primary">Enviar a Consolidación</button>
+            </div>
+        </form>
+    </div>
+
+    <?php elseif ($item['estado'] === 'consolidacion_viable'): ?>
+    <div class="workflow-form">
+        <h3><i class="fas fa-compress-arrows-alt"></i> 5. Consolidar Evaluación (Licitaciones)</h3>
+        <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
+            <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>Informe de Evaluación Consolidada Técnica, Económica y Legal</label>
+                    <textarea name="consolidacion_informe" class="form-control" rows="3"><?= htmlspecialchars($eval['consolidacion_informe'] ?? '') ?></textarea>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button type="submit" name="siguiente_estado" value="elaboracion_propuesta" class="btn btn-primary">Confirmar Viabilidad y Elaborar Propuesta</button>
                 <button type="submit" name="siguiente_estado" value="descartada" class="btn btn-danger">No viable</button>
             </div>
         </form>
     </div>
 
-    <?php elseif ($item['estado'] === 'preparacion_propuesta'): ?>
+    <?php elseif ($item['estado'] === 'elaboracion_propuesta'): ?>
     <div class="workflow-form">
-        <h3><i class="fas fa-file-contract"></i> 5. Preparación de Propuesta</h3>
-        <p class="text-sm mb-3">Se ha consolidado la evaluación. Procede a elaborar y validar la propuesta técnica y económica.</p>
+        <h3><i class="fas fa-file-contract"></i> 6. Elaborar Propuesta Técnica y Económica (Licitaciones)</h3>
+        <p class="text-sm mb-3">La oportunidad es viable. Procede a elaborar la propuesta oficial.</p>
         <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
             <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
             <div class="action-buttons">
-                <button type="submit" name="siguiente_estado" value="aprobacion_gerencia" class="btn btn-primary"><i class="fas fa-share"></i> Enviar a Gerencia para Aprobación</button>
+                <button type="submit" name="siguiente_estado" value="revision_propuesta" class="btn btn-primary"><i class="fas fa-share"></i> Enviar a Revisión de Propuesta</button>
+            </div>
+        </form>
+    </div>
+
+    <?php elseif ($item['estado'] === 'revision_propuesta'): ?>
+    <div class="workflow-form">
+        <h3><i class="fas fa-check-double"></i> 7. Revisión y Validación de Propuesta (Consultoría y Proyectos)</h3>
+        <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
+            <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>Revisión y Validación Técnica (Consultorías)</label>
+                    <textarea name="revision_tecnica" class="form-control" rows="2"><?= htmlspecialchars($eval['revision_tecnica'] ?? '') ?></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label>Revisión y Validación Económica (Gestión de Proyectos)</label>
+                    <textarea name="revision_economica" class="form-control" rows="2"><?= htmlspecialchars($eval['revision_economica'] ?? '') ?></textarea>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button type="submit" name="siguiente_estado" value="aprobacion_gerencia" class="btn btn-primary"><i class="fas fa-share"></i> Validar y Enviar a Gerencia</button>
             </div>
         </form>
     </div>
 
     <?php elseif ($item['estado'] === 'aprobacion_gerencia'): ?>
     <div class="workflow-form">
-        <h3><i class="fas fa-user-tie"></i> 6. Aprobación de Gerencia General / CEO</h3>
+        <h3><i class="fas fa-user-tie"></i> 8. Aprobación de Gerencia General / CEO</h3>
         <div style="background: #f8fafc; padding:15px; border-radius:8px; margin-bottom:15px; font-size:13px;">
-            <p><strong>Revisión Técnica:</strong> <?= htmlspecialchars($eval['informe_tecnico'] ?? 'No requerida o no ingresada') ?></p>
-            <p><strong>Revisión Económica:</strong> <?= htmlspecialchars($eval['informe_economico'] ?? 'No requerida o no ingresada') ?></p>
+            <p><strong>Revisión Técnica Propuesta:</strong> <?= htmlspecialchars($eval['revision_tecnica'] ?? 'No ingresada') ?></p>
+            <p><strong>Revisión Económica Propuesta:</strong> <?= htmlspecialchars($eval['revision_economica'] ?? 'No ingresada') ?></p>
         </div>
         <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
             <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
@@ -307,7 +347,7 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
 
     <?php elseif ($item['estado'] === 'presentada'): ?>
     <div class="workflow-form">
-        <h3><i class="fas fa-gavel"></i> 7. Seguimiento y Resultados</h3>
+        <h3><i class="fas fa-gavel"></i> 9. Seguimiento y Resultados (Licitaciones)</h3>
         <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
             <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
             <div class="action-buttons">
