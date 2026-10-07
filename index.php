@@ -78,6 +78,7 @@ $controllers = [
     'proyectos'     => 'ProyectoController',
     'clientes'      => 'ClienteController',
     'empresas'      => 'EmpresaController',
+    'profesionales' => 'ProfesionalController',
     'usuarios'      => 'UsuarioController',
 ];
 

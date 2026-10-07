@@ -80,23 +80,12 @@ class EmpresaModel {
         ", [$empresa_id]);
     }
 
-    public function createProfesional($empresa_id, $data) {
-        dbExecute("
-            INSERT INTO profesionales (empresa_id, nombre, tipo_profesional_id, especialidad_id, telefono, email)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ", [
-            $empresa_id, 
-            $data['nombre'], 
-            !empty($data['tipo_profesional_id']) ? $data['tipo_profesional_id'] : null, 
-            !empty($data['especialidad_id']) ? $data['especialidad_id'] : null, 
-            $data['telefono'] ?? '', 
-            $data['email'] ?? ''
-        ]);
-        return dbLastId();
+    public function linkProfesional($empresa_id, $profesional_id) {
+        return dbExecute("UPDATE profesionales SET empresa_id = ? WHERE id = ?", [$empresa_id, $profesional_id]);
     }
 
-    public function deleteProfesional($id) {
-        return dbExecute("DELETE FROM profesionales WHERE id = ?", [$id]);
+    public function unlinkProfesional($id) {
+        return dbExecute("UPDATE profesionales SET empresa_id = NULL WHERE id = ?", [$id]);
     }
 
     // ─── DOCUMENTOS ─────────────────────────────────────────────

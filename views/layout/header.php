@@ -328,6 +328,10 @@ if (in_array($userRol, ['superadmin', 'admin'])) {
                     <i class="fas fa-city"></i>
                     <span>Empresas</span>
                 </a>
+                <a href="<?= BASE_URL ?>/profesionales" class="sidebar-link <?= ($currentPage ?? '') === 'profesionales' ? 'active' : '' ?> <?= $rLink ?>" <?= $rData ?>>
+                    <i class="fas fa-users-cog"></i>
+                    <span>Profesionales</span>
+                </a>
             </div>
 
             <!-- Fase 2: Planificación y proyectos -->

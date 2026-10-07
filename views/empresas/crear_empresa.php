@@ -108,7 +108,7 @@ $isIframeModal = isset($_GET['modal_iframe']) && $_GET['modal_iframe'] == 1;
                     <div style="font-size:11px;"><?= htmlspecialchars($prof['email']) ?></div>
                 </td>
                 <td>
-                    <a href="javascript:void(0)" onclick="if(confirm('¿Eliminar profesional?')) window.location='<?= BASE_URL ?>/?page=empresas&action=eliminarProfesional&id=<?= $prof['id'] ?>&empresa_id=<?= $item['id'] ?><?= $isIframeModal ? '&modal_iframe=1' : '' ?>'" class="text-danger" title="Eliminar"><i class="fas fa-trash"></i></a>
+                    <a href="javascript:void(0)" onclick="if(confirm('¿Desvincular profesional?')) window.location='<?= BASE_URL ?>/?page=empresas&action=unlinkProfesional&id=<?= $prof['id'] ?>&empresa_id=<?= $item['id'] ?><?= $isIframeModal ? '&modal_iframe=1' : '' ?>'" class="text-danger" title="Desvincular"><i class="fas fa-unlink"></i></a>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -116,48 +116,33 @@ $isIframeModal = isset($_GET['modal_iframe']) && $_GET['modal_iframe'] == 1;
         </tbody>
     </table>
 
-    <form method="post" action="<?= BASE_URL ?>/?page=empresas&action=addProfesional&id=<?= $item['id'] ?><?= $isIframeModal ? '&modal_iframe=1' : '' ?>" style="background: #ffffff; padding: 16px; border-radius: 8px; border: 1px dashed #cbd5e1;">
-        <h4 style="font-size: 13px; margin-bottom: 12px;">Añadir Profesional</h4>
-        <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+    <form method="post" action="<?= BASE_URL ?>/?page=empresas&action=linkProfesional&id=<?= $item['id'] ?><?= $isIframeModal ? '&modal_iframe=1' : '' ?>" style="background: #ffffff; padding: 16px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-bottom: 12px;">
+        <h4 style="font-size: 13px; margin-bottom: 12px;">Vincular Profesional Existente</h4>
+        <div class="form-grid" style="grid-template-columns: 1fr auto;">
             <div class="form-group">
-                <label>Nombre</label>
-                <input type="text" name="nombre" class="form-control" required placeholder="Nombre completo">
-            </div>
-            <div class="form-group">
-                <label>Tipo (Ej. Ingeniero, Técnico)</label>
-                <select name="tipo_profesional_id" class="form-control dynamic-select" data-tipo="tipo_profesional" required>
-                    <option value="">-- Seleccionar --</option>
-                    <option value="ADD_NEW" style="color: #4f46e5; font-weight: 700;">+ Añadir nuevo tipo...</option>
-                    <?php if(!empty($data['cat_tipos_profesional'])): ?>
-                        <?php foreach($data['cat_tipos_profesional'] as $cat): ?>
-                            <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['nombre']) ?></option>
+                <select name="profesional_id" class="form-control" required>
+                    <option value="">-- Seleccionar profesional --</option>
+                    <?php if(!empty($data['all_profesionales'])): ?>
+                        <?php foreach($data['all_profesionales'] as $p): ?>
+                            <?php if ($p['empresa_id'] != $item['id']): ?>
+                            <option value="<?= $p['id'] ?>">
+                                <?= htmlspecialchars($p['nombre']) ?> 
+                                <?= $p['especialidad'] ? ' - ' . htmlspecialchars($p['especialidad']) : '' ?>
+                                <?= $p['empresa_id'] ? '(Pertenece a otra empresa)' : '(Independiente)' ?>
+                            </option>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </select>
-            </div>
-            <div class="form-group">
-                <label>Especialidad</label>
-                <select name="especialidad_id" class="form-control dynamic-select" data-tipo="especialidad">
-                    <option value="">-- Seleccionar --</option>
-                    <option value="ADD_NEW" style="color: #4f46e5; font-weight: 700;">+ Añadir nueva especialidad...</option>
-                    <?php if(!empty($data['cat_especialidades'])): ?>
-                        <?php foreach($data['cat_especialidades'] as $cat): ?>
-                            <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['nombre']) ?></option>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Teléfono</label>
-                <input type="text" name="telefono" class="form-control" placeholder="Teléfono">
-            </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="email" class="form-control" placeholder="Email">
             </div>
             <div class="form-group" style="display:flex; align-items:flex-end;">
-                <button type="submit" class="btn btn-primary" style="width:100%; height:35px;"><i class="fas fa-plus"></i> Añadir</button>
+                <button type="submit" class="btn btn-primary" style="height:35px;"><i class="fas fa-link"></i> Vincular</button>
             </div>
+        </div>
+        <div style="font-size:12px; color:var(--slate-500); margin-top:8px;">
+            Si el profesional no existe, primero debes crearlo desde el módulo de <a href="<?= BASE_URL ?>/profesionales" target="_blank" style="color:var(--accent-600);font-weight:600;">Profesionales</a>.
+        </div>
+    </form>
         </div>
     </form>
 </div>

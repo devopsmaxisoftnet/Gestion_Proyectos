@@ -54,6 +54,7 @@ class EmpresaController {
         $data = [
             'empresa' => $this->model->getById($id),
             'profesionales' => $this->model->getProfesionales($id),
+            'all_profesionales' => (new \ProfesionalModel())->getAll(),
             'documentos' => $this->model->getDocumentos($id),
             'cat_especialidades' => $this->model->getCatEspecialidades(),
             'cat_tipos_profesional' => $this->model->getCatTiposProfesional(),
@@ -74,18 +75,18 @@ class EmpresaController {
         exit;
     }
     
-    public function addProfesional($empresa_id) {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->model->createProfesional($empresa_id, $_POST);
+    public function linkProfesional($empresa_id) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['profesional_id'])) {
+            $this->model->linkProfesional($empresa_id, $_POST['profesional_id']);
         }
         header('Location: ' . BASE_URL . '/empresas/editar/' . $empresa_id);
         exit;
     }
 
-    public function eliminarProfesional($prof_id) {
+    public function unlinkProfesional($prof_id) {
         if (isset($_GET['empresa_id'])) {
             $emp_id = $_GET['empresa_id'];
-            $this->model->deleteProfesional($prof_id);
+            $this->model->unlinkProfesional($prof_id);
             header('Location: ' . BASE_URL . '/empresas/editar/' . $emp_id);
         } else {
             header('Location: ' . BASE_URL . '/empresas');
