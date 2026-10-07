@@ -86,41 +86,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // =====================================================
-    // Mobile sidebar toggle
+    // Mobile sidebar toggle (solo en vista principal, nunca en modales/iframes)
     // =====================================================
     const sidebar = document.getElementById('sidebar');
-    
-    // Crear botón de menú móvil
-    const menuBtn = document.createElement('button');
-    menuBtn.className = 'btn-icon mobile-menu-btn';
-    menuBtn.innerHTML = '<i class="fas fa-bars"></i>';
-    menuBtn.style.cssText = 'display:none;position:fixed;top:14px;left:12px;z-index:200;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.1);border-radius:8px;width:40px;height:40px;';
-    document.body.appendChild(menuBtn);
-    
-    function checkMobile() {
-        if (window.innerWidth <= 768) {
-            menuBtn.style.display = 'flex';
-        } else {
-            menuBtn.style.display = 'none';
-            sidebar.classList.remove('open');
-        }
-    }
-    
-    menuBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('open');
-    });
-    
-    window.addEventListener('resize', checkMobile);
-    checkMobile();
-    
-    // Cerrar sidebar al hacer click fuera en móvil
-    document.addEventListener('click', function(e) {
-        if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
-            if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+    if (sidebar && !document.body.classList.contains('is-modal-view') && window === window.parent) {
+        // Crear botón de menú móvil
+        const menuBtn = document.createElement('button');
+        menuBtn.className = 'btn-icon mobile-menu-btn';
+        menuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+        menuBtn.style.cssText = 'display:none;position:fixed;top:14px;left:12px;z-index:200;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.1);border-radius:8px;width:40px;height:40px;';
+        document.body.appendChild(menuBtn);
+        
+        function checkMobile() {
+            if (window.innerWidth <= 768) {
+                menuBtn.style.display = 'flex';
+            } else {
+                menuBtn.style.display = 'none';
                 sidebar.classList.remove('open');
             }
         }
-    });
+        
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+        
+        window.addEventListener('resize', checkMobile);
+        checkMobile();
+        
+        // Cerrar sidebar al hacer click fuera en móvil
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+                if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+    }
     
     // =====================================================
     // Tooltips simples

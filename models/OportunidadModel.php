@@ -49,6 +49,8 @@ class OportunidadModel {
     
     public function create($data) {
         $codigo = 'OP-' . date('Y') . '-' . strtoupper(substr(md5(uniqid()), 0, 6));
+        $monto = !empty($data['monto_estimado']) ? (float)$data['monto_estimado'] : 0.00;
+        $fechaLimite = !empty($data['fecha_limite']) ? $data['fecha_limite'] : null;
         dbExecute("
             INSERT INTO oportunidades (codigo, nombre, cliente_id, linea_negocio_id, responsable_id,
             monto_estimado, fecha_limite, estado, prioridad, descripcion)
@@ -56,13 +58,15 @@ class OportunidadModel {
         ", [
             $codigo, $data['nombre'], $data['cliente_id'] ?: null,
             $data['linea_negocio_id'] ?: null, $data['responsable_id'] ?: null,
-            $data['monto_estimado'], $data['fecha_limite'], $data['prioridad'] ?? 'media',
+            $monto, $fechaLimite, $data['prioridad'] ?? 'media',
             $data['descripcion'] ?? ''
         ]);
         return dbLastId();
     }
     
     public function update($id, $data) {
+        $monto = !empty($data['monto_estimado']) ? (float)$data['monto_estimado'] : 0.00;
+        $fechaLimite = !empty($data['fecha_limite']) ? $data['fecha_limite'] : null;
         return dbExecute("
             UPDATE oportunidades SET
             nombre = ?, cliente_id = ?, linea_negocio_id = ?, responsable_id = ?,
@@ -70,7 +74,7 @@ class OportunidadModel {
             WHERE id = ?
         ", [
             $data['nombre'], $data['cliente_id'] ?: null, $data['linea_negocio_id'] ?: null,
-            $data['responsable_id'] ?: null, $data['monto_estimado'], $data['fecha_limite'],
+            $data['responsable_id'] ?: null, $monto, $fechaLimite,
             $data['estado'], $data['prioridad'] ?? 'media', $data['descripcion'] ?? '',
             $data['observaciones'] ?? '', $id
         ]);

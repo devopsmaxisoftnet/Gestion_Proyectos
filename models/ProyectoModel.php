@@ -42,19 +42,27 @@ class ProyectoModel {
     
     public function create($data) {
         $codigo = 'PROY-' . date('Y') . '-' . str_pad(dbQueryOne("SELECT COUNT(*)+1 as n FROM proyectos")['n'], 3, '0', STR_PAD_LEFT);
+        $fechaInicio = !empty($data['fecha_inicio']) ? $data['fecha_inicio'] : null;
+        $fechaFin = !empty($data['fecha_fin_planificada']) ? $data['fecha_fin_planificada'] : null;
+        $montoPres = !empty($data['monto_presupuesto']) ? (float)$data['monto_presupuesto'] : 0.00;
         dbExecute("
             INSERT INTO proyectos (codigo, contrato_id, nombre, responsable_id, fecha_inicio, 
             fecha_fin_planificada, monto_presupuesto, estado)
             VALUES (?, ?, ?, ?, ?, ?, ?, 'planificacion')
         ", [
             $codigo, $data['contrato_id'] ?: null, $data['nombre'],
-            $data['responsable_id'] ?: null, $data['fecha_inicio'],
-            $data['fecha_fin_planificada'], $data['monto_presupuesto']
+            $data['responsable_id'] ?: null, $fechaInicio,
+            $fechaFin, $montoPres
         ]);
         return dbLastId();
     }
     
     public function update($id, $data) {
+        $fechaInicio = !empty($data['fecha_inicio']) ? $data['fecha_inicio'] : null;
+        $fechaFin = !empty($data['fecha_fin_planificada']) ? $data['fecha_fin_planificada'] : null;
+        $avance = !empty($data['avance_porcentaje']) ? (float)$data['avance_porcentaje'] : 0.00;
+        $montoPres = !empty($data['monto_presupuesto']) ? (float)$data['monto_presupuesto'] : 0.00;
+        $montoEjec = !empty($data['monto_ejecutado']) ? (float)$data['monto_ejecutado'] : 0.00;
         return dbExecute("
             UPDATE proyectos SET
             contrato_id = ?, nombre = ?, responsable_id = ?, fecha_inicio = ?,
@@ -63,9 +71,9 @@ class ProyectoModel {
             WHERE id = ?
         ", [
             $data['contrato_id'] ?: null, $data['nombre'],
-            $data['responsable_id'] ?: null, $data['fecha_inicio'],
-            $data['fecha_fin_planificada'], $data['avance_porcentaje'],
-            $data['monto_presupuesto'], $data['monto_ejecutado'],
+            $data['responsable_id'] ?: null, $fechaInicio,
+            $fechaFin, $avance,
+            $montoPres, $montoEjec,
             $data['estado'], $data['observaciones'] ?? '', $id
         ]);
     }

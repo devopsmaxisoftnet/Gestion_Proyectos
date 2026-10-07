@@ -11,7 +11,7 @@ if ($_isLocal) {
     define('DB_USER', 'root');
     define('DB_PASS', '123456');
     define('DB_NAME', 'gestion_comercial');
-    define('BASE_URL', '/PROYECTO');
+    define('BASE_URL', '/Gestion_Proyectos');
 } else {
     define('DB_HOST', 'localhost');
     define('DB_USER', 'mnxsrokm_user_GestComercial');
@@ -26,7 +26,7 @@ define('DB_CHARSET', 'utf8mb4');
 define('GOOGLE_CLIENT_ID',     '963879865677-9oirqdfcrng44os4nghjq9pjd12i2r4v.apps.googleusercontent.com');
 define('GOOGLE_CLIENT_SECRET', 'TU_GOOGLE_CLIENT_SECRET');
 define('GOOGLE_REDIRECT_URI',  $_isLocal
-    ? 'http://localhost/PROYECTO/auth/google/callback'
+    ? 'http://localhost/Gestion_Proyectos/auth/google/callback'
     : 'https://monitoreo.maxisoftnet.com/auth/google/callback'
 );
 

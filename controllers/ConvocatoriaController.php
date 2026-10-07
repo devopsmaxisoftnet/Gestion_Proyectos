@@ -37,6 +37,20 @@ class ConvocatoriaController {
     
     public function crear() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $perfiles = [];
+            if (!empty($_POST['perfil_nombre']) && is_array($_POST['perfil_nombre'])) {
+                foreach ($_POST['perfil_nombre'] as $idx => $pNombre) {
+                    if (!empty(trim($pNombre))) {
+                        $perfiles[] = [
+                            'nombre' => trim($pNombre),
+                            'tipo' => $_POST['perfil_tipo'][$idx] ?? 'Profesional clave',
+                            'cantidad' => max(1, (int)($_POST['perfil_cantidad'][$idx] ?? 1))
+                        ];
+                    }
+                }
+            }
+            $_POST['perfiles'] = $perfiles;
+            
             $this->model->create($_POST);
             header('Location: ' . BASE_URL . '/convocatorias');
             exit;
@@ -46,6 +60,7 @@ class ConvocatoriaController {
         $data = [
             'lineas_negocio' => $usuarioModel->getLineasNegocio(),
             'clientes' => (new \ClienteModel())->getAll(),
+            'catalogo_perfiles' => $this->model->getCatalogoPerfiles(),
         ];
         
         $pageTitle = 'Nueva convocatoria';
@@ -58,6 +73,20 @@ class ConvocatoriaController {
     
     public function editar($id) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $perfiles = [];
+            if (!empty($_POST['perfil_nombre']) && is_array($_POST['perfil_nombre'])) {
+                foreach ($_POST['perfil_nombre'] as $idx => $pNombre) {
+                    if (!empty(trim($pNombre))) {
+                        $perfiles[] = [
+                            'nombre' => trim($pNombre),
+                            'tipo' => $_POST['perfil_tipo'][$idx] ?? 'Profesional clave',
+                            'cantidad' => max(1, (int)($_POST['perfil_cantidad'][$idx] ?? 1))
+                        ];
+                    }
+                }
+            }
+            $_POST['perfiles'] = $perfiles;
+            
             $this->model->update($id, $_POST);
             header('Location: ' . BASE_URL . '/convocatorias');
             exit;
@@ -67,6 +96,8 @@ class ConvocatoriaController {
             'convocatoria' => $this->model->getById($id),
             'lineas_negocio' => (new UsuarioModel())->getLineasNegocio(),
             'clientes' => (new \ClienteModel())->getAll(),
+            'catalogo_perfiles' => $this->model->getCatalogoPerfiles(),
+            'perfiles' => $this->model->getPerfilesByConvocatoria($id),
         ];
         
         if (!$data['convocatoria']) {
@@ -80,6 +111,18 @@ class ConvocatoriaController {
         include __DIR__ . '/../views/layout/header.php';
         include __DIR__ . '/../views/convocatorias/crear_convocatoria.php';
         include __DIR__ . '/../views/layout/footer.php';
+    }
+
+    public function agregar_perfil_catalogo() {
+        header('Content-Type: application/json');
+        $nombre = trim($_POST['nombre'] ?? '');
+        if (empty($nombre)) {
+            echo json_encode(['success' => false, 'message' => 'Nombre requerido']);
+            exit;
+        }
+        $res = $this->model->addPerfilCatalogo($nombre);
+        echo json_encode(['success' => $res, 'nombre' => $nombre]);
+        exit;
     }
     
     public function eliminar($id) {

@@ -235,7 +235,7 @@
                         <a href="<?= BASE_URL ?>/convocatorias/ver/<?= $conv['id'] ?>" style="color:var(--gray-600); font-size:13px; font-weight:500; display:flex; align-items:center; gap:4px">
                             <i class="fas fa-eye"></i> Ver
                         </a>
-                        <a href="<?= BASE_URL ?>/convocatorias/editar/<?= $conv['id'] ?>" style="color:var(--gray-500); padding:4px">
+                        <a href="javascript:void(0)" onclick="abrirGlobalModal('Editar Convocatoria', '<?= BASE_URL ?>/convocatorias/editar/<?= $conv['id'] ?>?modal_iframe=1', 'fas fa-pen')" style="color:var(--gray-500); padding:4px" title="Editar convocatoria">
                             <i class="fas fa-pen" style="font-size:12px"></i>
                         </a>
                         <a href="<?= BASE_URL ?>/convocatorias/eliminar/<?= $conv['id'] ?>" onclick="return confirm('¿Eliminar esta convocatoria?')" style="color:var(--rose-500); padding:4px">

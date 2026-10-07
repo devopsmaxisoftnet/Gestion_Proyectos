@@ -5,7 +5,7 @@
     <meta name="referrer" content="no-referrer">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Acceso al Sistema de Gestión Comercial - Oportunidades y Contratos del Estado">
-    <title>Iniciar Sesión | Gestión Comercial</title>
+    <title>Iniciar Sesión | Gestión de Proyectos</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
@@ -355,7 +355,7 @@
             <div class="image-content">
                 <div class="brand-pill">
                     <i class="fas fa-gem"></i>
-                    Gestión Comercial
+                    Gestión de Proyectos
                 </div>
                 <h2>Sistema de<br><em>Oportunidades</em><br>y Contratos</h2>
                 <p>Centralice licitaciones, propuestas y contratos del Estado peruano con integración directa a la API OECE/SEACE.</p>
@@ -395,7 +395,14 @@
                 Continuar con Google
             </a>
 
-            <div class="separator">Acceso exclusivo para usuarios autorizados</div>
+            <div class="separator">Acceso exclusivo para administradores</div>
+
+            <!-- Link al login de colaborador -->
+            <a href="<?= BASE_URL ?>/auth/loginColaborador" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;font-size:13px;color:#64748b;text-decoration:none;font-weight:500;transition:all 0.3s;padding:10px;border-radius:10px;" onmouseover="this.style.color='#10b981';this.style.background='rgba(16,185,129,0.05)'" onmouseout="this.style.color='#64748b';this.style.background='transparent'">
+                <i class="fas fa-users" style="font-size:12px;"></i>
+                ¿Eres colaborador? Accede aquí
+                <i class="fas fa-arrow-right" style="font-size:11px;transition:transform 0.3s;"></i>
+            </a>
 
             <!-- Footer -->
             <div class="form-footer">
@@ -424,6 +431,13 @@
             `;
             pc.appendChild(d);
         }
+    </script>
+    <script>
+        window.addEventListener('pageshow', function() {
+            document.querySelectorAll('.btn-google').forEach(function(btn) {
+                btn.classList.remove('loading');
+            });
+        });
     </script>
 </body>
 </html>

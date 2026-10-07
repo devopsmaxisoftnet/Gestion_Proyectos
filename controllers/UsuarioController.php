@@ -37,6 +37,8 @@ class UsuarioController {
         
         $data = [
             'roles' => $this->model->getRoles(),
+            'areas' => $this->model->getAreas(),
+            'tipos' => $this->model->getTiposUsuario()
         ];
         
         $pageTitle = 'Nuevo usuario';
@@ -57,6 +59,8 @@ class UsuarioController {
         $data = [
             'usuario' => $this->model->getById($id),
             'roles' => $this->model->getRoles(),
+            'areas' => $this->model->getAreas(),
+            'tipos' => $this->model->getTiposUsuario()
         ];
         
         $pageTitle = 'Editar usuario';
@@ -69,6 +73,12 @@ class UsuarioController {
     
     public function eliminar($id) {
         $this->model->delete($id);
+        header('Location: ' . BASE_URL . '/usuarios');
+        exit;
+    }
+    
+    public function alternar_estado($id) {
+        $this->model->toggleStatus($id);
         header('Location: ' . BASE_URL . '/usuarios');
         exit;
     }

@@ -494,7 +494,7 @@ a:hover {
 .hero-stats {
     position: absolute;
     right: 40px;
-    top: 50%;
+    top: 45%;
     transform: translateY(-50%);
     text-align: right;
     z-index: 1;

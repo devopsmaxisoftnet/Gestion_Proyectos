@@ -47,14 +47,16 @@ class PropuestaModel {
     
     public function create($data) {
         $codigo = 'PROP-' . date('Y') . '-' . str_pad(dbQueryOne("SELECT COUNT(*)+1 as n FROM propuestas")['n'], 3, '0', STR_PAD_LEFT);
+        $monto = !empty($data['monto_propuesta']) ? (float)$data['monto_propuesta'] : 0.00;
         dbExecute("
             INSERT INTO propuestas (codigo, licitacion_id, responsable_id, monto_propuesta, estado)
             VALUES (?, ?, ?, ?, 'borrador')
-        ", [$codigo, $data['licitacion_id'], $data['responsable_id'] ?: null, $data['monto_propuesta']]);
+        ", [$codigo, $data['licitacion_id'], $data['responsable_id'] ?: null, $monto]);
         return dbLastId();
     }
     
     public function update($id, $data) {
+        $monto = !empty($data['monto_propuesta']) ? (float)$data['monto_propuesta'] : 0.00;
         return dbExecute("
             UPDATE propuestas SET
             licitacion_id = ?, responsable_id = ?, monto_propuesta = ?, fecha_envio = ?,
@@ -62,7 +64,7 @@ class PropuestaModel {
             WHERE id = ?
         ", [
             $data['licitacion_id'], $data['responsable_id'] ?: null,
-            $data['monto_propuesta'], $data['fecha_envio'] ?: null,
+            $monto, $data['fecha_envio'] ?: null,
             $data['estado'], $data['observaciones'] ?? '', $id
         ]);
     }

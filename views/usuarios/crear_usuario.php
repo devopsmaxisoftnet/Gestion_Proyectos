@@ -25,27 +25,42 @@
                 <input type="email" name="email" class="form-control" required value="<?= htmlspecialchars($item['email'] ?? '') ?>">
             </div>
             <div class="form-group">
-                <label>Rol</label>
+                <label>Rol principal</label>
                 <select name="rol_id" class="form-control" required>
                     <option value="">-- Seleccionar rol --</option>
-                    <?php foreach ($data['roles'] ?? [] as $rol): ?>
+                    <?php 
+                    // Evitar duplicados agrupando por nombre temporalmente
+                    $rolesAgrupados = [];
+                    foreach ($data['roles'] ?? [] as $rol) {
+                        if (!isset($rolesAgrupados[$rol['nombre']])) {
+                            $rolesAgrupados[$rol['nombre']] = $rol;
+                        }
+                    }
+                    foreach ($rolesAgrupados as $rol): ?>
                     <option value="<?= $rol['id'] ?>" <?= (($item['rol_id'] ?? '') == $rol['id']) ? 'selected' : '' ?>><?= htmlspecialchars($rol['nombre']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
+            
             <div class="form-group">
-                <label><?= $item ? 'Nueva contraseña (dejar vacío para mantener)' : 'Contraseña' ?></label>
-                <input type="password" name="password" class="form-control" <?= $item ? '' : 'required' ?> placeholder="••••••••">
-            </div>
-            <?php if ($item): ?>
-            <div class="form-group">
-                <label>Estado</label>
-                <select name="activo" class="form-control">
-                    <option value="1" <?= $item['activo'] ? 'selected' : '' ?>>Activo</option>
-                    <option value="0" <?= !$item['activo'] ? 'selected' : '' ?>>Suspendido</option>
+                <label>Tipo de Usuario</label>
+                <select name="tipo_usuario_id" class="form-control">
+                    <option value="">-- Seleccionar tipo --</option>
+                    <?php foreach ($data['tipos'] ?? [] as $tipo): ?>
+                    <option value="<?= $tipo['id'] ?>" <?= (($item['tipo_usuario_id'] ?? '') == $tipo['id']) ? 'selected' : '' ?>><?= htmlspecialchars($tipo['nombre']) ?></option>
+                    <?php endforeach; ?>
                 </select>
             </div>
-            <?php endif; ?>
+
+            <div class="form-group">
+                <label>Área</label>
+                <select name="area_id" class="form-control">
+                    <option value="">-- Seleccionar área --</option>
+                    <?php foreach ($data['areas'] ?? [] as $area): ?>
+                    <option value="<?= $area['id'] ?>" <?= (($item['area_id'] ?? '') == $area['id']) ? 'selected' : '' ?>><?= htmlspecialchars($area['nombre']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
         </div>
         <div class="form-actions">
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> <?= $item ? 'Guardar cambios' : 'Registrar usuario' ?></button>

@@ -7,7 +7,7 @@ require_once __DIR__ . '/config/database.php';
 // Obtener la página solicitada (Soporte para Clean URLs)
 $request_uri = $_SERVER['REQUEST_URI'];
 // Quitar la parte del basePath según ambiente (case-insensitive para Windows/XAMPP)
-$_strippedUri = preg_replace('#^/PROYECTO(/|$)#i', '/', $request_uri);
+$_strippedUri = preg_replace('#^/Gestion_Proyectos(/|$)#i', '/', $request_uri);
 $request_uri  = explode('?', $_strippedUri)[0];
 $parts        = explode('/', trim($request_uri, '/'));
 
@@ -27,6 +27,12 @@ if ($page === 'auth') {
                 $auth->login();
             }
             break;
+        case 'loginColaborador':
+            $auth->loginColaborador();
+            break;
+        case 'devLogin':
+            $auth->devLogin();
+            break;
         case 'google':
             // /auth/google          → iniciar flujo OAuth
             // /auth/google/callback → callback de Google
@@ -35,6 +41,15 @@ if ($page === 'auth') {
             } else {
                 $auth->google();
             }
+            break;
+        case 'solicitarAcceso':
+            $auth->solicitarAcceso();
+            break;
+        case 'solicitudes':
+            $auth->solicitudes();
+            break;
+        case 'gestionarSolicitud':
+            $auth->gestionarSolicitud();
             break;
         case 'logout':
             $auth->logout();
@@ -62,7 +77,7 @@ $controllers = [
     'contratos'     => 'ContratoController',
     'proyectos'     => 'ProyectoController',
     'clientes'      => 'ClienteController',
-    'proveedores'   => 'ProveedorController',
+    'empresas'      => 'EmpresaController',
     'usuarios'      => 'UsuarioController',
 ];
 

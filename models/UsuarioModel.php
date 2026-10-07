@@ -38,19 +38,34 @@ class UsuarioModel {
     }
     
     public function create($data) {
+        $rolEnum = in_array((int)($data['rol_id'] ?? 0), [1, 5]) ? 'admin' : 'usuario';
         dbExecute("
-            INSERT INTO usuarios (nombre, apellido, email, password, rol_id)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO usuarios (nombre, apellido, email, password, rol_id, area_id, tipo_usuario_id, acceso_aprobado, rol)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)
         ", [
             $data['nombre'], $data['apellido'], $data['email'],
-            password_hash($data['password'], PASSWORD_DEFAULT), $data['rol_id']
+            password_hash($data['password'], PASSWORD_DEFAULT), 
+            $data['rol_id'] ?: null,
+            $data['area_id'] ?: null,
+            $data['tipo_usuario_id'] ?: null,
+            $rolEnum
         ]);
         return dbLastId();
     }
     
     public function update($id, $data) {
-        $sql = "UPDATE usuarios SET nombre = ?, apellido = ?, email = ?, rol_id = ?, activo = ?";
-        $params = [$data['nombre'], $data['apellido'], $data['email'], $data['rol_id'], $data['activo'] ?? 1];
+        $rolEnum = in_array((int)($data['rol_id'] ?? 0), [1, 5]) ? 'admin' : 'usuario';
+        $sql = "UPDATE usuarios SET nombre = ?, apellido = ?, email = ?, rol_id = ?, area_id = ?, tipo_usuario_id = ?, activo = ?, rol = ?";
+        $params = [
+            $data['nombre'], 
+            $data['apellido'], 
+            $data['email'], 
+            $data['rol_id'] ?: null, 
+            $data['area_id'] ?: null, 
+            $data['tipo_usuario_id'] ?: null, 
+            $data['activo'] ?? 1,
+            $rolEnum
+        ];
         
         if (!empty($data['password'])) {
             $sql .= ", password = ?";
@@ -67,8 +82,25 @@ class UsuarioModel {
         return dbExecute("DELETE FROM usuarios WHERE id = ?", [$id]);
     }
     
+    public function toggleStatus($id) {
+        $user = $this->getById($id);
+        if ($user) {
+            $nuevoEstado = $user['activo'] ? 0 : 1;
+            return dbExecute("UPDATE usuarios SET activo = ? WHERE id = ?", [$nuevoEstado, $id]);
+        }
+        return false;
+    }
+    
     public function getRoles() {
         return dbQuery("SELECT * FROM roles ORDER BY id");
+    }
+    
+    public function getAreas() {
+        return dbQuery("SELECT * FROM areas WHERE activo = 1 ORDER BY nombre");
+    }
+    
+    public function getTiposUsuario() {
+        return dbQuery("SELECT * FROM tipos_usuario ORDER BY nivel_acceso DESC");
     }
     
     public function getLineasNegocio() {

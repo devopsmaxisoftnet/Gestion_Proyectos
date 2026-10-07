@@ -52,7 +52,7 @@
                 </td>
                 <td>
                     <div class="table-actions">
-                        <a href="<?= BASE_URL ?>/clientes/editar/<?= $cl['id'] ?>" class="section-action" style="font-size:12px">
+                        <a href="javascript:void(0)" onclick="abrirGlobalModal('Editar cliente', '<?= BASE_URL ?>/?page=clientes&action=editar&id=<?= $cl['id'] ?>&modal_iframe=1', 'fas fa-building', 'Gestión del cliente o entidad')" class="section-action" style="font-size:12px">
                             Ver <i class="fas fa-chevron-right"></i>
                         </a>
                     </div>

@@ -48,14 +48,18 @@ class LicitacionModel {
     
     public function create($data) {
         $codigo = 'LIC-' . date('Y') . '-' . str_pad(dbQueryOne("SELECT COUNT(*)+1 as n FROM licitaciones")['n'], 3, '0', STR_PAD_LEFT);
+        $fechaPres = !empty($data['fecha_presentacion']) ? $data['fecha_presentacion'] : null;
+        $monto = !empty($data['monto_ofertado']) ? (float)$data['monto_ofertado'] : 0.00;
         dbExecute("
             INSERT INTO licitaciones (codigo, oportunidad_id, responsable_id, fecha_presentacion, monto_ofertado, estado)
             VALUES (?, ?, ?, ?, ?, 'en_preparacion')
-        ", [$codigo, $data['oportunidad_id'], $data['responsable_id'] ?: null, $data['fecha_presentacion'], $data['monto_ofertado']]);
+        ", [$codigo, $data['oportunidad_id'], $data['responsable_id'] ?: null, $fechaPres, $monto]);
         return dbLastId();
     }
     
     public function update($id, $data) {
+        $fechaPres = !empty($data['fecha_presentacion']) ? $data['fecha_presentacion'] : null;
+        $monto = !empty($data['monto_ofertado']) ? (float)$data['monto_ofertado'] : 0.00;
         return dbExecute("
             UPDATE licitaciones SET
             oportunidad_id = ?, responsable_id = ?, fecha_presentacion = ?, monto_ofertado = ?,
@@ -63,7 +67,7 @@ class LicitacionModel {
             WHERE id = ?
         ", [
             $data['oportunidad_id'], $data['responsable_id'] ?: null,
-            $data['fecha_presentacion'], $data['monto_ofertado'],
+            $fechaPres, $monto,
             $data['estado'], $data['observaciones'] ?? '', $id
         ]);
     }

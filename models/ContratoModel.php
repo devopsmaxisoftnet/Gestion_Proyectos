@@ -45,20 +45,24 @@ class ContratoModel {
     
     public function create($data) {
         $codigo = 'CONT-' . date('Y') . '-' . str_pad(dbQueryOne("SELECT COUNT(*)+1 as n FROM contratos")['n'], 3, '0', STR_PAD_LEFT);
+        $monto = !empty($data['monto_contrato']) ? (float)$data['monto_contrato'] : 0.00;
+        $plazo = !empty($data['plazo_dias']) ? (int)$data['plazo_dias'] : 0;
         dbExecute("
             INSERT INTO contratos (codigo, oportunidad_id, cliente_id, responsable_id, objeto, monto_contrato,
             fecha_firma, fecha_inicio, fecha_fin, plazo_dias, estado, tipo_contrato)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'en_elaboracion', ?)
         ", [
             $codigo, $data['oportunidad_id'] ?: null, $data['cliente_id'] ?: null,
-            $data['responsable_id'] ?: null, $data['objeto'], $data['monto_contrato'],
+            $data['responsable_id'] ?: null, $data['objeto'], $monto,
             $data['fecha_firma'] ?: null, $data['fecha_inicio'] ?: null,
-            $data['fecha_fin'] ?: null, $data['plazo_dias'], $data['tipo_contrato'] ?? ''
+            $data['fecha_fin'] ?: null, $plazo, $data['tipo_contrato'] ?? ''
         ]);
         return dbLastId();
     }
     
     public function update($id, $data) {
+        $monto = !empty($data['monto_contrato']) ? (float)$data['monto_contrato'] : 0.00;
+        $plazo = !empty($data['plazo_dias']) ? (int)$data['plazo_dias'] : 0;
         return dbExecute("
             UPDATE contratos SET
             oportunidad_id = ?, cliente_id = ?, responsable_id = ?, objeto = ?, monto_contrato = ?,
@@ -67,9 +71,9 @@ class ContratoModel {
             WHERE id = ?
         ", [
             $data['oportunidad_id'] ?: null, $data['cliente_id'] ?: null,
-            $data['responsable_id'] ?: null, $data['objeto'], $data['monto_contrato'],
+            $data['responsable_id'] ?: null, $data['objeto'], $monto,
             $data['fecha_firma'] ?: null, $data['fecha_inicio'] ?: null,
-            $data['fecha_fin'] ?: null, $data['plazo_dias'], $data['estado'],
+            $data['fecha_fin'] ?: null, $plazo, $data['estado'],
             $data['tipo_contrato'] ?? '', $data['observaciones'] ?? '', $id
         ]);
     }

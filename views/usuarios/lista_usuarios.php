@@ -119,14 +119,32 @@ foreach ($data['usuarios'] as $u) {
                     <?php endif; ?>
                 </td>
                 <td>
-                    <span class="badge <?= $u['activo'] ? 'badge-participate' : 'badge-suspended' ?>">
-                        <?= $u['activo'] ? 'Activo' : 'Suspendido' ?>
-                    </span>
+                    <?php if (!$u['activo']): ?>
+                        <span class="badge badge-suspended"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block;margin-right:4px;"></span>Suspendido</span>
+                    <?php elseif (isset($u['acceso_aprobado']) && !$u['acceso_aprobado']): ?>
+                        <span class="badge" style="background:#fffbeb; color:#b45309; border:1px solid #fef3c7; display:inline-flex; align-items:center; gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>Pendiente</span>
+                    <?php else: ?>
+                        <span class="badge badge-participate"><span style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block;margin-right:4px;"></span>Activo</span>
+                    <?php endif; ?>
                 </td>
                 <td>
                     <div class="table-actions">
-                        <a href="<?= BASE_URL ?>/usuarios/editar/<?= $u['id'] ?>" class="section-action" style="font-size:12px">
-                            <?= $u['activo'] ? 'Suspender' : 'Activar' ?>
+                        <?php if (isset($u['acceso_aprobado']) && !$u['acceso_aprobado']): ?>
+                            <a href="javascript:void(0)" onclick="confirmarAccion('Aprobar Cuenta', '¿Estás seguro de activar la cuenta de <?= htmlspecialchars($u['nombre']) ?> para otorgarle acceso al sistema?', '<?= BASE_URL ?>/usuarios/alternar_estado/<?= $u['id'] ?>', '#10b981', 'fas fa-check-circle', false)" class="section-action" style="font-size:12px; color:#059669; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
+                                <i class="fas fa-user-check"></i> Activar cuenta
+                            </a>
+                        <?php elseif ($u['activo']): ?>
+                            <a href="javascript:void(0)" onclick="confirmarAccion('Suspender Usuario', '¿Estás seguro de suspender a <?= htmlspecialchars($u['nombre']) ?>? Perderá acceso temporalmente al sistema.', '<?= BASE_URL ?>/usuarios/alternar_estado/<?= $u['id'] ?>', '#ef4444', 'fas fa-user-slash', true)" class="section-action" style="font-size:12px; color:#dc2626; font-weight:500; display:inline-flex; align-items:center; gap:4px;">
+                                <i class="fas fa-ban"></i> Suspender
+                            </a>
+                        <?php else: ?>
+                            <a href="javascript:void(0)" onclick="confirmarAccion('Activar Usuario', '¿Estás seguro de reactivar a <?= htmlspecialchars($u['nombre']) ?>? Recuperará su acceso al sistema.', '<?= BASE_URL ?>/usuarios/alternar_estado/<?= $u['id'] ?>', '#10b981', 'fas fa-user-check', false)" class="section-action" style="font-size:12px; color:#059669; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
+                                <i class="fas fa-power-off"></i> Activar
+                            </a>
+                        <?php endif; ?>
+                        
+                        <a href="javascript:void(0)" onclick="abrirGlobalModal('Editar Usuario', '<?= BASE_URL ?>/usuarios/editar/<?= $u['id'] ?>?modal_iframe=1', 'fas fa-user-edit')" class="btn-icon" style="width:30px; height:30px; border-radius:8px; border:1px solid #e2e8f0; background:#ffffff; color:#64748b; margin-left:6px; display:inline-flex; align-items:center; justify-content:center; transition:all 0.2s;" title="Editar usuario">
+                            <i class="fas fa-pen" style="font-size:11px;"></i>
                         </a>
                     </div>
                 </td>
