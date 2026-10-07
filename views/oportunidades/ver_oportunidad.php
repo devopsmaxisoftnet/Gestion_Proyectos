@@ -7,8 +7,8 @@ $estadosFlujo = [
     'evaluacion_requisitos' => 'Licitaciones (Requisitos)',
     'viabilidad_preliminar' => 'Proyectos (Viabilidad)',
     'evaluacion_especializada' => 'Especializada (Téc/Econ)',
-    'aprobacion_gerencia' => 'Aprobación Gerencia',
     'preparacion_propuesta' => 'Propuesta',
+    'aprobacion_gerencia' => 'Aprobación Gerencia',
     'presentada' => 'Presentada',
     'adjudicada' => 'Adjudicada'
 ];
@@ -271,15 +271,27 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
                 </div>
             </div>
             <div class="action-buttons">
-                <button type="submit" name="siguiente_estado" value="aprobacion_gerencia" class="btn btn-primary">Consolidar y Enviar a Gerencia</button>
+                <button type="submit" name="siguiente_estado" value="preparacion_propuesta" class="btn btn-primary">Consolidar y Preparar Propuesta</button>
                 <button type="submit" name="siguiente_estado" value="descartada" class="btn btn-danger">No viable</button>
+            </div>
+        </form>
+    </div>
+
+    <?php elseif ($item['estado'] === 'preparacion_propuesta'): ?>
+    <div class="workflow-form">
+        <h3><i class="fas fa-file-contract"></i> 5. Preparación de Propuesta</h3>
+        <p class="text-sm mb-3">Se ha consolidado la evaluación. Procede a elaborar y validar la propuesta técnica y económica.</p>
+        <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
+            <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
+            <div class="action-buttons">
+                <button type="submit" name="siguiente_estado" value="aprobacion_gerencia" class="btn btn-primary"><i class="fas fa-share"></i> Enviar a Gerencia para Aprobación</button>
             </div>
         </form>
     </div>
 
     <?php elseif ($item['estado'] === 'aprobacion_gerencia'): ?>
     <div class="workflow-form">
-        <h3><i class="fas fa-user-tie"></i> 5. Aprobación de Gerencia General / CEO</h3>
+        <h3><i class="fas fa-user-tie"></i> 6. Aprobación de Gerencia General / CEO</h3>
         <div style="background: #f8fafc; padding:15px; border-radius:8px; margin-bottom:15px; font-size:13px;">
             <p><strong>Revisión Técnica:</strong> <?= htmlspecialchars($eval['informe_tecnico'] ?? 'No requerida o no ingresada') ?></p>
             <p><strong>Revisión Económica:</strong> <?= htmlspecialchars($eval['informe_economico'] ?? 'No requerida o no ingresada') ?></p>
@@ -287,20 +299,8 @@ if (in_array($item['estado'], ['descartada', 'no_adjudicada'])) {
         <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
             <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
             <div class="action-buttons">
-                <button type="submit" name="siguiente_estado" value="preparacion_propuesta" class="btn btn-success"><i class="fas fa-check"></i> Aprobar Participación / Propuesta</button>
+                <button type="submit" name="siguiente_estado" value="presentada" class="btn btn-success"><i class="fas fa-check"></i> Aprobar Participación / Propuesta</button>
                 <button type="submit" name="siguiente_estado" value="descartada" class="btn btn-danger">Rechazar</button>
-            </div>
-        </form>
-    </div>
-
-    <?php elseif ($item['estado'] === 'preparacion_propuesta'): ?>
-    <div class="workflow-form">
-        <h3><i class="fas fa-file-contract"></i> 6. Preparación de Propuesta</h3>
-        <p class="text-sm mb-3">La Gerencia ha aprobado participar. Procede a elaborar la propuesta técnica y económica oficial.</p>
-        <form method="post" action="<?= BASE_URL ?>/?page=oportunidades&action=procesar_etapa&id=<?= $item['id'] ?>">
-            <input type="hidden" name="estado_actual" value="<?= $item['estado'] ?>">
-            <div class="action-buttons">
-                <button type="submit" name="siguiente_estado" value="presentada" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Marcar como Presentada</button>
             </div>
         </form>
     </div>
