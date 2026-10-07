@@ -26,6 +26,16 @@
                 </select>
             </div>
             <div class="form-group">
+                <label>Origen de la oportunidad</label>
+                <select name="origen" class="form-control" required>
+                    <?php $origenes = ['licitacion_publica'=>'Licitación Pública', 'invitacion_privada'=>'Invitación / Privada', 'cliente_directo'=>'Cliente Directo', 'empresas_propias'=>'Empresas Propias', 'otras'=>'Otras']; ?>
+                    <option value="">-- Seleccionar --</option>
+                    <?php foreach ($origenes as $val => $label): ?>
+                    <option value="<?= $val ?>" <?= (($item['origen'] ?? '') === $val) ? 'selected' : '' ?>><?= $label ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="form-group">
                 <label>Línea de negocio</label>
                 <select name="linea_negocio_id" class="form-control">
                     <option value="">-- Seleccionar --</option>

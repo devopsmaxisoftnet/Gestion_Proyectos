@@ -85,14 +85,18 @@ class OportunidadController {
     }
     
     public function ver($id) {
-        $data = [
-            'oportunidad' => $this->model->getById($id),
-        ];
-        
-        if (!$data['oportunidad']) {
+        $oportunidad = $this->model->getById($id);
+        if (!$oportunidad) {
             header('Location: ' . BASE_URL . '/oportunidades');
             exit;
         }
+        
+        $evaluacion = $this->model->getEvaluacion($id) ?: [];
+        
+        $data = [
+            'oportunidad' => $oportunidad,
+            'evaluacion' => $evaluacion
+        ];
         
         $pageTitle = 'Detalle de oportunidad';
         $currentPage = 'oportunidades';
@@ -100,6 +104,41 @@ class OportunidadController {
         include __DIR__ . '/../views/layout/header.php';
         include __DIR__ . '/../views/oportunidades/ver_oportunidad.php';
         include __DIR__ . '/../views/layout/footer.php';
+    }
+
+    public function procesar_etapa($id) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $estado_actual = $_POST['estado_actual'] ?? '';
+            $siguiente_estado = $_POST['siguiente_estado'] ?? '';
+            
+            // Si hay datos de evaluación, los actualizamos
+            $eval_data = [];
+            if (isset($_POST['req_bases_tdr'])) $eval_data['req_bases_tdr'] = 1;
+            if (isset($_POST['req_legales'])) $eval_data['req_legales'] = 1;
+            if (isset($_POST['req_cronograma'])) $eval_data['req_cronograma'] = 1;
+            if (isset($_POST['viabilidad_alcance'])) $eval_data['viabilidad_alcance'] = $_POST['viabilidad_alcance'];
+            if (isset($_POST['viabilidad_plazo'])) $eval_data['viabilidad_plazo'] = $_POST['viabilidad_plazo'];
+            if (isset($_POST['viabilidad_riesgos'])) $eval_data['viabilidad_riesgos'] = $_POST['viabilidad_riesgos'];
+            if (isset($_POST['informe_tecnico'])) $eval_data['informe_tecnico'] = $_POST['informe_tecnico'];
+            if (isset($_POST['informe_economico'])) $eval_data['informe_economico'] = $_POST['informe_economico'];
+            
+            if (!empty($eval_data)) {
+                $this->model->updateEvaluacion($id, $eval_data);
+            }
+            
+            // Actualizar si requiere eval especializada
+            if (isset($_POST['requiere_eval_especializada'])) {
+                dbExecute("UPDATE oportunidades SET requiere_evaluacion_especializada = ? WHERE id = ?", [intval($_POST['requiere_eval_especializada']), $id]);
+            }
+            
+            // Cambiar el estado principal si se especificó
+            if ($siguiente_estado) {
+                $this->model->cambiarEstado($id, $siguiente_estado);
+            }
+            
+            header('Location: ' . BASE_URL . '/oportunidades/ver/' . $id);
+            exit;
+        }
     }
 }
 

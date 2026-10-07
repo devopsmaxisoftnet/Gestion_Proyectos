@@ -52,12 +52,13 @@ class OportunidadModel {
         $monto = !empty($data['monto_estimado']) ? (float)$data['monto_estimado'] : 0.00;
         $fechaLimite = !empty($data['fecha_limite']) ? $data['fecha_limite'] : null;
         dbExecute("
-            INSERT INTO oportunidades (codigo, nombre, cliente_id, linea_negocio_id, responsable_id,
+            INSERT INTO oportunidades (codigo, nombre, cliente_id, linea_negocio_id, origen, responsable_id,
             monto_estimado, fecha_limite, estado, prioridad, descripcion)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'detectada', ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'identificada', ?, ?)
         ", [
             $codigo, $data['nombre'], $data['cliente_id'] ?: null,
-            $data['linea_negocio_id'] ?: null, $data['responsable_id'] ?: null,
+            $data['linea_negocio_id'] ?: null, $data['origen'] ?? 'licitacion_publica',
+            $data['responsable_id'] ?: null,
             $monto, $fechaLimite, $data['prioridad'] ?? 'media',
             $data['descripcion'] ?? ''
         ]);
@@ -69,11 +70,12 @@ class OportunidadModel {
         $fechaLimite = !empty($data['fecha_limite']) ? $data['fecha_limite'] : null;
         return dbExecute("
             UPDATE oportunidades SET
-            nombre = ?, cliente_id = ?, linea_negocio_id = ?, responsable_id = ?,
+            nombre = ?, cliente_id = ?, linea_negocio_id = ?, origen = ?, responsable_id = ?,
             monto_estimado = ?, fecha_limite = ?, estado = ?, prioridad = ?, descripcion = ?, observaciones = ?
             WHERE id = ?
         ", [
             $data['nombre'], $data['cliente_id'] ?: null, $data['linea_negocio_id'] ?: null,
+            $data['origen'] ?? 'licitacion_publica',
             $data['responsable_id'] ?: null, $monto, $fechaLimite,
             $data['estado'], $data['prioridad'] ?? 'media', $data['descripcion'] ?? '',
             $data['observaciones'] ?? '', $id
@@ -86,5 +88,32 @@ class OportunidadModel {
     
     public function cambiarEstado($id, $estado) {
         return dbExecute("UPDATE oportunidades SET estado = ? WHERE id = ?", [$estado, $id]);
+    }
+
+    // -- Nuevas funciones para tracking BPMN --
+    public function getEvaluacion($oportunidad_id) {
+        return dbQueryOne("SELECT * FROM oportunidad_evaluaciones WHERE oportunidad_id = ?", [$oportunidad_id]);
+    }
+
+    public function initEvaluacion($oportunidad_id) {
+        $exists = $this->getEvaluacion($oportunidad_id);
+        if (!$exists) {
+            dbExecute("INSERT INTO oportunidad_evaluaciones (oportunidad_id) VALUES (?)", [$oportunidad_id]);
+        }
+    }
+
+    public function updateEvaluacion($oportunidad_id, $data) {
+        $this->initEvaluacion($oportunidad_id);
+        $fields = [];
+        $params = [];
+        foreach ($data as $key => $value) {
+            $fields[] = "$key = ?";
+            $params[] = $value;
+        }
+        if (empty($fields)) return true;
+        
+        $params[] = $oportunidad_id;
+        $sql = "UPDATE oportunidad_evaluaciones SET " . implode(', ', $fields) . " WHERE oportunidad_id = ?";
+        return dbExecute($sql, $params);
     }
 }
