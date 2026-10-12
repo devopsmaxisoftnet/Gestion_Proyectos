@@ -15,24 +15,47 @@ class ContratoController {
         $filtros = [
             'busqueda' => $_GET['busqueda'] ?? '',
             'estado' => $_GET['estado'] ?? '',
+            'tipo_gestion' => $_GET['tipo_gestion'] ?? '',
+            'anio' => $_GET['anio'] ?? '',
         ];
         
         $data = [
             'contratos' => $this->model->getAll($filtros),
+            'totales' => $this->model->getTotalesGenerales($filtros),
             'filtros' => $filtros,
         ];
         
-        $pageTitle = 'Contratos';
+        $pageTitle = 'Contratos y Valorizaciones';
         $currentPage = 'contratos';
         
         include __DIR__ . '/../views/layout/header.php';
         include __DIR__ . '/../views/contratos/lista_contratos.php';
         include __DIR__ . '/../views/layout/footer.php';
     }
+
+    public function ver($id) {
+        $contrato = $this->model->getById($id);
+        if (!$contrato) {
+            header('Location: ' . BASE_URL . '/contratos');
+            exit;
+        }
+
+        $data = [
+            'contrato' => $contrato,
+        ];
+
+        $pageTitle = 'Detalle de Contrato - ' . ($contrato['nombre_corto'] ?: $contrato['codigo']);
+        $currentPage = 'contratos';
+        
+        $isAjax = !empty($_GET['modal_iframe']) || !empty($_GET['ajax']);
+        if (!$isAjax) include __DIR__ . '/../views/layout/header.php';
+        include __DIR__ . '/../views/contratos/ver_contrato.php';
+        if (!$isAjax) include __DIR__ . '/../views/layout/footer.php';
+    }
     
     public function crear() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->model->create($_POST);
+            $nuevoId = $this->model->create($_POST);
             header('Location: ' . BASE_URL . '/contratos');
             exit;
         }
@@ -46,9 +69,10 @@ class ContratoController {
         $pageTitle = 'Nuevo contrato';
         $currentPage = 'contratos';
         
-        include __DIR__ . '/../views/layout/header.php';
+        $isAjax = !empty($_GET['modal_iframe']) || !empty($_GET['ajax']);
+        if (!$isAjax) include __DIR__ . '/../views/layout/header.php';
         include __DIR__ . '/../views/contratos/crear_contrato.php';
-        include __DIR__ . '/../views/layout/footer.php';
+        if (!$isAjax) include __DIR__ . '/../views/layout/footer.php';
     }
     
     public function editar($id) {
@@ -68,7 +92,7 @@ class ContratoController {
         $pageTitle = 'Editar contrato';
         $currentPage = 'contratos';
         
-        $isAjax = !empty($_GET['ajax']);
+        $isAjax = !empty($_GET['modal_iframe']) || !empty($_GET['ajax']);
         if (!$isAjax) include __DIR__ . '/../views/layout/header.php';
         include __DIR__ . '/../views/contratos/crear_contrato.php';
         if (!$isAjax) include __DIR__ . '/../views/layout/footer.php';
@@ -79,9 +103,20 @@ class ContratoController {
         header('Location: ' . BASE_URL . '/contratos');
         exit;
     }
+
+    public function agregar_pago($contratoId) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->model->agregarPago($contratoId, $_POST);
+            $redirect = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : (BASE_URL . '/contratos/ver/' . $contratoId);
+            header('Location: ' . $redirect);
+            exit;
+        }
+    }
+
+    public function eliminar_pago($pagoId) {
+        $this->model->eliminarPago($pagoId);
+        $redirect = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : (BASE_URL . '/contratos');
+        header('Location: ' . $redirect);
+        exit;
+    }
 }
-
-
-
-
-

@@ -7,6 +7,7 @@
     <title><?= $pageTitle ?? 'Gestión de Proyectos' ?> | Gestión de Proyectos</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/styles.css?v=<?= @filemtime(__DIR__ . '/../../assets/css/styles.css') ?: '2.1' ?>">
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/modals-pipeline.css?v=<?= @filemtime(__DIR__ . '/../../assets/css/modals-pipeline.css') ?: '1.0' ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/pagination.css?v=<?= @filemtime(__DIR__ . '/../../assets/css/pagination.css') ?: '1.0' ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script>

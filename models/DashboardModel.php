@@ -18,7 +18,7 @@ class DashboardModel {
     }
     
     public function getContratosVigentes() {
-        return dbQueryOne("SELECT COUNT(*) as total, SUM(monto_contrato) as monto_total FROM contratos WHERE estado IN ('firmado','en_ejecucion')");
+        return dbQueryOne("SELECT COUNT(*) as total, SUM(monto_contrato) as monto_total FROM contratos WHERE estado NOT IN ('resuelto','anulado','liquidado')");
     }
     
     public function getValorPortafolio() {
@@ -62,8 +62,8 @@ class DashboardModel {
     
     public function getFlujoComercial() {
         $flujo = [];
-        $flujo['detectadas'] = dbQueryOne("SELECT COUNT(*) as total FROM oportunidades WHERE estado = 'detectada'")['total'];
-        $flujo['en_evaluacion'] = dbQueryOne("SELECT COUNT(*) as total FROM oportunidades WHERE estado = 'en_evaluacion'")['total'];
+        $flujo['detectadas'] = dbQueryOne("SELECT COUNT(*) as total FROM convocatorias")['total'];
+        $flujo['en_evaluacion'] = dbQueryOne("SELECT COUNT(*) as total FROM oportunidad_evaluaciones")['total'];
         $flujo['en_propuesta'] = dbQueryOne("SELECT COUNT(*) as total FROM propuestas")['total'];
         $flujo['adjudicadas'] = dbQueryOne("SELECT COUNT(*) as total FROM oportunidades WHERE estado = 'adjudicada'")['total'];
         return $flujo;
@@ -84,8 +84,8 @@ class DashboardModel {
     }
     
     public function getEvaluacionPortafolio() {
-        $total = dbQueryOne("SELECT COUNT(*) as total FROM oportunidades WHERE estado NOT IN ('cerrada','no_participar','no_adjudicada')")['total'];
-        $evaluadas = dbQueryOne("SELECT COUNT(*) as total FROM oportunidades WHERE estado NOT IN ('cerrada','no_participar','no_adjudicada','detectada')")['total'];
+        $total = dbQueryOne("SELECT COUNT(*) as total FROM oportunidades")['total'];
+        $evaluadas = dbQueryOne("SELECT COUNT(*) as total FROM oportunidad_evaluaciones WHERE aprobado_gerencia = 1")['total'];
         return $total > 0 ? round(($evaluadas / $total) * 100) : 0;
     }
 }

@@ -1,0 +1,199 @@
+/* ==========================================================================
+   PAGINACIÓN ANIMADA Y MODERNA - GESTIÓN DE PROYECTOS ERP
+   Estilo Premium para todas las tablas del sistema
+   ========================================================================== */
+
+@keyframes tableRowSlideFade {
+    0% {
+        opacity: 0;
+        transform: translateY(12px) scale(0.995);
+    }
+    60% {
+        opacity: 0.92;
+        transform: translateY(-1px) scale(1.001);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Animación aplicada a cada fila visible */
+tr.pag-row-animated {
+    animation: tableRowSlideFade 0.28s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+    animation-delay: calc(var(--pag-delay, 0) * 0.022s) !important;
+}
+
+/* Contenedor principal de la barra de paginación */
+.pagination-footer-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px 24px;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    transition: all 0.2s ease;
+}
+
+/* Grupo de información a la izquierda */
+.pagination-info-group {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+/* Badge con rango y total */
+.pagination-badge-info {
+    font-size: 13px;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8fafc;
+    padding: 7px 14px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    font-weight: 500;
+}
+
+.pagination-badge-info i {
+    color: #2563eb;
+    font-size: 13px;
+}
+
+.pagination-badge-info strong {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+/* Selector de tamaño de página */
+.pagination-select-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.pagination-select-wrapper select {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.pagination-select-wrapper select:focus,
+.pagination-select-wrapper select:hover {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* Controles de navegación a la derecha */
+.pagination-controls-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Botones de control individual */
+.pag-ctrl-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 9px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    user-select: none;
+}
+
+.pag-ctrl-btn:hover:not(:disabled):not(.active) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.pag-ctrl-btn.active {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    border-color: #2563eb !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35) !important;
+    transform: scale(1.05);
+    position: relative;
+}
+
+.pag-ctrl-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #ffffff;
+}
+
+.pag-ctrl-btn:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.pag-ctrl-ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 36px;
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+/* Adaptación responsive */
+@media (max-width: 768px) {
+    .pagination-footer-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 14px 16px;
+    }
+    
+    .pagination-info-group {
+        justify-content: space-between;
+    }
+    
+    .pagination-controls-nav {
+        justify-content: center;
+    }
+}

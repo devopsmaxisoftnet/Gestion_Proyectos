@@ -18,6 +18,7 @@
 </div>
 
 <script src="<?= BASE_URL ?>/assets/js/app.js"></script>
+<script src="<?= BASE_URL ?>/assets/js/pagination.js?v=<?= @filemtime(__DIR__ . '/../../assets/js/pagination.js') ?: '1.0' ?>"></script>
 <script>
     function openSideModal(url, title = 'Detalle') {
         if (typeof abrirGlobalModal === 'function') {

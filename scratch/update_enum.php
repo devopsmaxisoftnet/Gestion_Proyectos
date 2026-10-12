@@ -1,1 +1,0 @@
-<?php require __DIR__ . '/../config/database.php'; dbExecute("ALTER TABLE oportunidades MODIFY COLUMN estado enum('identificada','evaluacion_requisitos','viabilidad_preliminar','evaluacion_especializada','consolidacion_viable','preparacion_propuesta','revision_propuesta','aprobacion_gerencia','presentada','adjudicada','no_adjudicada','descartada');");
