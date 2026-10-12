@@ -24,7 +24,10 @@ define('DB_CHARSET', 'utf8mb4');
 
 // ── Google OAuth ────────────────────────────────────────────
 define('GOOGLE_CLIENT_ID',     '963879865677-9oirqdfcrng44os4nghjq9pjd12i2r4v.apps.googleusercontent.com');
-define('GOOGLE_CLIENT_SECRET', 'TU_GOOGLE_CLIENT_SECRET');
+define('GOOGLE_CLIENT_SECRET', file_exists(__DIR__ . '/google_secret.php')
+    ? (include __DIR__ . '/google_secret.php')
+    : (getenv('GOOGLE_CLIENT_SECRET') ?: 'TU_GOOGLE_CLIENT_SECRET')
+);
 define('GOOGLE_REDIRECT_URI',  $_isLocal
     ? 'http://localhost/Gestion_Proyectos/auth/google/callback'
     : 'https://monitoreo.maxisoftnet.com/auth/google/callback'

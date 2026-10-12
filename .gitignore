@@ -10,3 +10,6 @@ Desktop.ini
 !/uploads/oportunidades/
 /uploads/oportunidades/*
 !/uploads/oportunidades/.gitkeep
+
+# Sensitive credentials
+/config/google_secret.php
