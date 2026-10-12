@@ -20,6 +20,10 @@
 <script src="<?= BASE_URL ?>/assets/js/app.js"></script>
 <script>
     function openSideModal(url, title = 'Detalle') {
+        if (typeof abrirGlobalModal === 'function') {
+            abrirGlobalModal(title, url + (url.includes('?') ? '&' : '?') + 'modal_iframe=1', 'fas fa-edit', 'Ventana de gestión', 'lg');
+            return;
+        }
         document.getElementById('globalSideModalOverlay').classList.add('active');
         document.getElementById('globalSideModal').classList.add('active');
         document.getElementById('sideModalTitle').innerText = title;
@@ -33,11 +37,6 @@
             .then(res => res.text())
             .then(html => {
                 document.getElementById('sideModalBody').innerHTML = html;
-                
-                // Si el HTML cargado contiene forms, capturar sus submits para que no recarguen
-                // (Opcional, pero para edición sería genial). Como el usuario pidió que Editar licitaciones
-                // esté en el modal, interceptaremos el submit si queremos. O dejamos que recargue la pag normal.
-                // Lo más simple: dejamos que el form haga un POST normal y recargue la pag, no importa.
             })
             .catch(err => {
                 document.getElementById('sideModalBody').innerHTML = '<p style="color:red; padding:20px;">Error al cargar la información.</p>';

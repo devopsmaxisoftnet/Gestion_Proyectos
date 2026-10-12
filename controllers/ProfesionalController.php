@@ -12,10 +12,14 @@ class ProfesionalController {
     public function index() {
         $filtros = [
             'busqueda' => $_GET['busqueda'] ?? '',
+            'especialidad_id' => $_GET['especialidad_id'] ?? '',
+            'empresa_id' => $_GET['empresa_id'] ?? '',
         ];
         
         $data = [
             'profesionales' => $this->model->getAll($filtros),
+            'especialidades' => $this->model->getEspecialidades(),
+            'empresas' => (new EmpresaModel())->getAll(),
             'filtros' => $filtros,
         ];
         
@@ -36,12 +40,14 @@ class ProfesionalController {
         
         $data = [
             'empresas' => (new EmpresaModel())->getAll(),
+            'especialidades' => $this->model->getEspecialidades(),
+            'tipos' => $this->model->getTiposProfesional(),
         ];
         
         $pageTitle = 'Nuevo Profesional';
         $currentPage = 'profesionales';
         
-        $isAjax = !empty($_GET['ajax']);
+        $isAjax = !empty($_GET['ajax']) || !empty($_GET['modal_iframe']);
         if (!$isAjax) include __DIR__ . '/../views/layout/header.php';
         include __DIR__ . '/../views/profesionales/crear_profesional.php';
         if (!$isAjax) include __DIR__ . '/../views/layout/footer.php';
@@ -61,12 +67,14 @@ class ProfesionalController {
         $data = [
             'profesional' => $this->model->getById($id),
             'empresas' => (new EmpresaModel())->getAll(),
+            'especialidades' => $this->model->getEspecialidades(),
+            'tipos' => $this->model->getTiposProfesional(),
         ];
         
         $pageTitle = 'Editar Profesional';
         $currentPage = 'profesionales';
         
-        $isAjax = !empty($_GET['ajax']);
+        $isAjax = !empty($_GET['ajax']) || !empty($_GET['modal_iframe']);
         if (!$isAjax) include __DIR__ . '/../views/layout/header.php';
         include __DIR__ . '/../views/profesionales/crear_profesional.php';
         if (!$isAjax) include __DIR__ . '/../views/layout/footer.php';

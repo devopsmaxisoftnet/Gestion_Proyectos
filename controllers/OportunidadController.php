@@ -126,29 +126,51 @@ class OportunidadController {
             
             // Si hay datos de evaluación, los actualizamos
             $eval_data = [];
-            if (isset($_POST['req_bases_tdr'])) $eval_data['req_bases_tdr'] = 1;
-            if (isset($_POST['req_legales'])) $eval_data['req_legales'] = 1;
-            if (isset($_POST['req_cronograma'])) $eval_data['req_cronograma'] = 1;
+            if (isset($_POST['has_req_checks'])) {
+                $eval_data['req_bases_tdr'] = isset($_POST['req_bases_tdr']) ? 1 : 0;
+                $eval_data['req_legales'] = isset($_POST['req_legales']) ? 1 : 0;
+                $eval_data['req_cronograma'] = isset($_POST['req_cronograma']) ? 1 : 0;
+                $eval_data['req_condiciones'] = isset($_POST['req_condiciones']) ? 1 : 0;
+            } else {
+                if (isset($_POST['req_bases_tdr'])) $eval_data['req_bases_tdr'] = 1;
+                if (isset($_POST['req_legales'])) $eval_data['req_legales'] = 1;
+                if (isset($_POST['req_cronograma'])) $eval_data['req_cronograma'] = 1;
+                if (isset($_POST['req_condiciones'])) $eval_data['req_condiciones'] = 1;
+            }
             if (isset($_POST['viabilidad_alcance'])) $eval_data['viabilidad_alcance'] = $_POST['viabilidad_alcance'];
             if (isset($_POST['viabilidad_plazo'])) $eval_data['viabilidad_plazo'] = $_POST['viabilidad_plazo'];
             if (isset($_POST['viabilidad_riesgos'])) $eval_data['viabilidad_riesgos'] = $_POST['viabilidad_riesgos'];
             if (isset($_POST['informe_tecnico'])) $eval_data['informe_tecnico'] = $_POST['informe_tecnico'];
             if (isset($_POST['informe_economico'])) $eval_data['informe_economico'] = $_POST['informe_economico'];
             if (isset($_POST['consolidacion_informe'])) $eval_data['consolidacion_informe'] = $_POST['consolidacion_informe'];
+            if (isset($_POST['consultas_observaciones'])) $eval_data['consultas_observaciones'] = $_POST['consultas_observaciones'];
             if (isset($_POST['revision_tecnica'])) $eval_data['revision_tecnica'] = $_POST['revision_tecnica'];
             if (isset($_POST['revision_economica'])) $eval_data['revision_economica'] = $_POST['revision_economica'];
+            if (isset($_POST['seguimiento_legal'])) $eval_data['seguimiento_legal'] = $_POST['seguimiento_legal'];
+            if (isset($_POST['apelacion_sustento'])) $eval_data['apelacion_sustento'] = $_POST['apelacion_sustento'];
+            if (isset($_POST['perfeccionamiento_retencion'])) $eval_data['perfeccionamiento_retencion'] = $_POST['perfeccionamiento_retencion'];
+            if (isset($_POST['num_cta_cte'])) $eval_data['num_cta_cte'] = $_POST['num_cta_cte'];
+            if (isset($_POST['dni_representante_ruc'])) $eval_data['dni_representante_ruc'] = $_POST['dni_representante_ruc'];
             
             // Procesamiento de documentos e informes adjuntos (PDF, imagen, etc.) según flujo BPMN
             $doc_fields = [
                 'doc_bases_tdr',
+                'doc_req_legales',
+                'doc_req_cronograma',
+                'doc_req_condiciones',
                 'doc_informe_tecnico',
                 'doc_evaluacion_economica',
                 'doc_informe_evaluacion',
                 'doc_propuesta',
+                'doc_constancia_inscripcion',
                 'doc_constancia_presentacion',
                 'doc_subsanacion',
+                'doc_apelacion',
                 'doc_acta_adjudicacion',
                 'doc_contrato_garantias',
+                'doc_desagregados',
+                'doc_equipamiento',
+                'doc_carta_fianza',
                 'doc_cierre'
             ];
 
@@ -187,6 +209,59 @@ class OportunidadController {
                 
                 if (in_array($siguiente_estado, ['descartada', 'no_adjudicada']) && !empty($_POST['motivo_descarte'])) {
                     dbExecute("UPDATE oportunidades SET motivo_descarte = ? WHERE id = ?", [trim($_POST['motivo_descarte']), $id]);
+                }
+
+                // Si fue adjudicada (Buena Pro Ganada), generar o vincular automáticamente el contrato
+                if ($siguiente_estado === 'adjudicada') {
+                    $contratoExistente = dbQueryOne("SELECT id, codigo FROM contratos WHERE oportunidad_id = ?", [$id]);
+                    if (!$contratoExistente) {
+                        $opRow = $this->model->getById($id);
+                        $totalContratos = dbQueryOne("SELECT COUNT(*) as t FROM contratos")['t'] ?? 0;
+                        $numContrato = str_pad($totalContratos + 1, 3, '0', STR_PAD_LEFT);
+                        $nuevoCodigo = 'CONT-' . date('Y') . '-' . $numContrato;
+                        
+                        while (dbQueryOne("SELECT id FROM contratos WHERE codigo = ?", [$nuevoCodigo])) {
+                            $totalContratos++;
+                            $nuevoCodigo = 'CONT-' . date('Y') . '-' . str_pad($totalContratos + 1, 3, '0', STR_PAD_LEFT);
+                        }
+                        
+                        $monto = !empty($opRow['monto_estimado']) ? floatval($opRow['monto_estimado']) : 0.00;
+                        $objeto = !empty($opRow['nombre']) ? $opRow['nombre'] : 'Contrato derivado de Adjudicación';
+                        $cliId = !empty($opRow['cliente_id']) ? intval($opRow['cliente_id']) : null;
+                        if (!$cliId) {
+                            $cliDefault = dbQueryOne("SELECT id FROM clientes LIMIT 1");
+                            $cliId = $cliDefault ? $cliDefault['id'] : null;
+                        }
+                        
+                        dbExecute("
+                            INSERT INTO contratos (codigo, oportunidad_id, cliente_id, objeto, monto_contrato, moneda, fecha_firma, fecha_inicio, fecha_fin, plazo_dias, estado, tipo_contrato)
+                            VALUES (?, ?, ?, ?, ?, 'PEN', CURDATE(), CURDATE(), DATE_ADD(CURDATE(), INTERVAL 180 DAY), 180, 'en_elaboracion', ?)
+                        ", [$nuevoCodigo, $id, $cliId, $objeto, $monto, $opRow['origen'] ?? 'Licitación Pública']);
+                    }
+                }
+            }
+
+            // BPMN Fase 5: Transferir a planificación de proyectos (Crear proyecto con expediente)
+            if (isset($_POST['crear_proyecto']) || $siguiente_estado === 'transferir_proyecto') {
+                $contratoRow = dbQueryOne("SELECT id, codigo, objeto, monto_contrato FROM contratos WHERE oportunidad_id = ? ORDER BY id DESC LIMIT 1", [$id]);
+                $proyExistente = $contratoRow ? dbQueryOne("SELECT id FROM proyectos WHERE contrato_id = ?", [$contratoRow['id']]) : null;
+                if (!$proyExistente && $contratoRow) {
+                    $opRow = $this->model->getById($id);
+                    $totalProy = dbQueryOne("SELECT COUNT(*) as t FROM proyectos")['t'] ?? 0;
+                    $codProy = 'PROY-' . date('Y') . '-' . str_pad($totalProy + 1, 3, '0', STR_PAD_LEFT);
+                    while (dbQueryOne("SELECT id FROM proyectos WHERE codigo = ?", [$codProy])) {
+                        $totalProy++;
+                        $codProy = 'PROY-' . date('Y') . '-' . str_pad($totalProy + 1, 3, '0', STR_PAD_LEFT);
+                    }
+                    dbExecute("
+                        INSERT INTO proyectos (codigo, contrato_id, nombre, fecha_inicio, fecha_fin_planificada, monto_presupuesto, estado, observaciones)
+                        VALUES (?, ?, ?, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 180 DAY), ?, 'planificacion', 'Transferido desde Oportunidad BPMN (Expediente completo de licitación y contrato)')
+                    ", [$codProy, $contratoRow['id'], $opRow['nombre'], $contratoRow['monto_contrato']]);
+                    
+                    $newProy = dbQueryOne("SELECT id FROM proyectos WHERE codigo = ?", [$codProy]);
+                    if ($newProy) {
+                        $this->model->updateEvaluacion($id, ['proyecto_id' => $newProy['id']]);
+                    }
                 }
             }
             

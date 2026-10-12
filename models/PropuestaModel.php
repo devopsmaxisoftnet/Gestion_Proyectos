@@ -13,7 +13,8 @@ class PropuestaModel {
             $params[] = $filtros['estado'];
         }
         if (!empty($filtros['busqueda'])) {
-            $where .= " AND (o.nombre LIKE ? OR p.codigo LIKE ?)";
+            $where .= " AND (o.nombre LIKE ? OR p.codigo LIKE ? OR l.codigo LIKE ?)";
+            $params[] = "%{$filtros['busqueda']}%";
             $params[] = "%{$filtros['busqueda']}%";
             $params[] = "%{$filtros['busqueda']}%";
         }
@@ -34,8 +35,10 @@ class PropuestaModel {
     
     public function getById($id) {
         return dbQueryOne("
-            SELECT p.*, l.codigo as licitacion_codigo, o.nombre as oportunidad_nombre,
-                   c.razon_social as entidad, u.nombre as resp_nombre, u.apellido as resp_apellido
+            SELECT p.*, l.codigo as licitacion_codigo, o.nombre as licitacion_objeto,
+                   o.nombre as oportunidad_nombre, o.codigo as oportunidad_codigo,
+                   c.razon_social as entidad, c.ruc as cliente_ruc,
+                   u.nombre as resp_nombre, u.apellido as resp_apellido
             FROM propuestas p
             JOIN licitaciones l ON p.licitacion_id = l.id
             JOIN oportunidades o ON l.oportunidad_id = o.id
@@ -48,24 +51,41 @@ class PropuestaModel {
     public function create($data) {
         $codigo = 'PROP-' . date('Y') . '-' . str_pad(dbQueryOne("SELECT COUNT(*)+1 as n FROM propuestas")['n'], 3, '0', STR_PAD_LEFT);
         $monto = !empty($data['monto_propuesta']) ? (float)$data['monto_propuesta'] : 0.00;
+        
         dbExecute("
-            INSERT INTO propuestas (codigo, licitacion_id, responsable_id, monto_propuesta, estado)
-            VALUES (?, ?, ?, ?, 'borrador')
-        ", [$codigo, $data['licitacion_id'], $data['responsable_id'] ?: null, $monto]);
+            INSERT INTO propuestas (codigo, licitacion_id, responsable_id, monto_propuesta, estado,
+            propuesta_tecnica, propuesta_economica, archivo_tecnica, archivo_economica, observaciones)
+            VALUES (?, ?, ?, ?, 'borrador', ?, ?, ?, ?, ?)
+        ", [
+            $codigo, $data['licitacion_id'], $data['responsable_id'] ?: null, $monto,
+            $data['propuesta_tecnica'] ?? '', $data['propuesta_economica'] ?? '',
+            $data['archivo_tecnica'] ?? null, $data['archivo_economica'] ?? null,
+            $data['observaciones'] ?? ''
+        ]);
         return dbLastId();
     }
     
     public function update($id, $data) {
         $monto = !empty($data['monto_propuesta']) ? (float)$data['monto_propuesta'] : 0.00;
+        $current = $this->getById($id);
+        
+        $archTec = $data['archivo_tecnica'] ?? ($current['archivo_tecnica'] ?? null);
+        $archEco = $data['archivo_economica'] ?? ($current['archivo_economica'] ?? null);
+
         return dbExecute("
             UPDATE propuestas SET
             licitacion_id = ?, responsable_id = ?, monto_propuesta = ?, fecha_envio = ?,
-            estado = ?, observaciones = ?
+            estado = ?, propuesta_tecnica = ?, propuesta_economica = ?,
+            archivo_tecnica = ?, archivo_economica = ?, observaciones = ?
             WHERE id = ?
         ", [
             $data['licitacion_id'], $data['responsable_id'] ?: null,
             $monto, $data['fecha_envio'] ?: null,
-            $data['estado'], $data['observaciones'] ?? '', $id
+            $data['estado'] ?? 'borrador',
+            $data['propuesta_tecnica'] ?? '',
+            $data['propuesta_economica'] ?? '',
+            $archTec, $archEco,
+            $data['observaciones'] ?? '', $id
         ]);
     }
     
