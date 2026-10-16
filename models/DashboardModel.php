@@ -40,12 +40,26 @@ class DashboardModel {
     
     public function getOportunidadesPorLinea($lineaId, $limit = 3) {
         return dbQuery("
-            SELECT o.codigo, o.nombre, o.estado
+            SELECT o.codigo, o.nombre, o.estado, o.monto_estimado
             FROM oportunidades o
             WHERE o.linea_negocio_id = ? AND o.estado NOT IN ('cerrada','no_participar')
             ORDER BY o.created_at DESC
             LIMIT $limit
         ", [$lineaId]);
+    }
+    
+    public function getDesgloseCompletoOportunidades() {
+        return dbQuery("
+            SELECT o.id, o.codigo, o.nombre, o.monto_estimado, o.moneda, o.estado, o.prioridad, o.fecha_limite,
+                   o.linea_negocio_id, COALESCE(ln.nombre, 'Sin línea') as linea_nombre, 
+                   COALESCE(ln.color, '#6366f1') as linea_color, COALESCE(ln.icono, 'briefcase') as linea_icono,
+                   COALESCE(c.razon_social, 'Entidad no especificada') as cliente_nombre
+            FROM oportunidades o
+            LEFT JOIN lineas_negocio ln ON o.linea_negocio_id = ln.id
+            LEFT JOIN clientes c ON o.cliente_id = c.id
+            WHERE o.estado NOT IN ('cerrada','no_participar')
+            ORDER BY o.linea_negocio_id ASC, o.monto_estimado DESC, o.id ASC
+        ");
     }
     
     public function getOportunidadesPrioritarias($limit = 5) {

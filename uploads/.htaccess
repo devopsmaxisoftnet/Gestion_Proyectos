@@ -1,0 +1,52 @@
+# ==============================================================================
+# SEGURIDAD ESTRICTA PARA CARPETA DE SUBIDAS (UPLOADS)
+# Bloqueo total de ejecución de scripts y extensiones peligrosas
+# ==============================================================================
+
+# 1. Deshabilitar ejecución del motor PHP en cualquier versión
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php5.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+# 2. Deshabilitar handlers de scripts para que se traten como texto o se rechacen
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .inc .cgi .pl .py .sh
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .inc .cgi .pl .py .sh
+
+# 3. Denegar tajantemente el acceso a cualquier archivo ejecutable o script
+<FilesMatch "(?i)\.(php|php[0-9]?|phtml|phar|inc|cgi|pl|py|sh|bash|exe|bat|cmd|msi|vbs|js|html|htm|shtml|svg|asp|aspx|jsp)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 4. Permitir únicamente extensiones seguras (Documentos, Imágenes, Archivos de datos)
+<FilesMatch "(?i)\.(pdf|docx?|xlsx?|pptx?|txt|csv|jpe?g|png|webp|zip|rar)$">
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Allow from all
+    </IfModule>
+</FilesMatch>
+
+# 5. Deshabilitar listado de directorios y ejecución de CGI
+Options -Indexes -ExecCGI
+
+# 6. Prevenir ataques de Content Sniffing (MIME sniffing)
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+</IfModule>

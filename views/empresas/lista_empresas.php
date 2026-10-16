@@ -48,7 +48,12 @@
                 <td><?= htmlspecialchars($emp['contacto_administrativo'] ?? '-') ?></td>
                 <td><?= htmlspecialchars($emp['especialidad'] ?? '-') ?></td>
                 <td>
-                    <div class="table-actions">
+                    <div class="table-actions" style="display:flex;align-items:center;gap:8px;">
+                        <?php if (!empty($emp['drive_folder_id'])): ?>
+                        <a href="https://drive.google.com/drive/folders/<?= htmlspecialchars($emp['drive_folder_id']) ?>" target="_blank" class="badge" style="background:#fef3c7;color:#92400e;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-weight:600;padding:4px 8px;border-radius:6px;border:1px solid #fde68a;" title="Abrir carpeta Google Drive">
+                            <i class="fab fa-google-drive" style="color:#d97706;"></i> Drive
+                        </a>
+                        <?php endif; ?>
                         <a href="javascript:void(0)" onclick="abrirGlobalModal('Editar empresa', '<?= BASE_URL ?>/?page=empresas&action=editar&id=<?= $emp['id'] ?>&modal_iframe=1', 'fas fa-city', 'Gestión de la empresa y sus profesionales')" class="section-action" style="font-size:12px">
                             Ver <i class="fas fa-chevron-right"></i>
                         </a>

@@ -149,7 +149,16 @@ class ContratoModel {
             $data['empresas_asociadas'] ?? '', $data['representante'] ?? '', $data['tipo_servicio'] ?? '',
             $data['clasificacion'] ?? '', $data['responsable_texto'] ?? '', $utilidad, $data['observaciones'] ?? ''
         ]);
-        return dbLastId();
+        $newId = dbLastId();
+
+        // Crear subcarpeta correspondiente en Google Drive
+        try {
+            require_once __DIR__ . '/../helpers/GoogleDriveHelper.php';
+            $helper = new GoogleDriveHelper();
+            $helper->getItemFolder('Contratos', $codigo);
+        } catch (\Exception $e) {}
+
+        return $newId;
     }
     
     public function update($id, $data) {

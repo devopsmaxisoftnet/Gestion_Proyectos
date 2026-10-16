@@ -249,6 +249,13 @@
             font-size: 13px; margin-bottom: 24px;
             animation: shakeAlert 0.5s ease-out;
         }
+        .alert-success {
+            display: flex; gap: 12px; align-items: flex-start;
+            padding: 14px 16px; border-radius: 12px;
+            background: #ecfdf5; color: #065f46;
+            border: 1px solid #a7f3d0;
+            font-size: 13px; margin-bottom: 24px;
+        }
         @keyframes shakeAlert {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
@@ -384,6 +391,13 @@
             </div>
             <?php endif; ?>
 
+            <?php if (!empty($success)): ?>
+            <div class="alert-success">
+                <i class="fas fa-circle-check" style="margin-top:2px;flex-shrink:0;font-size:16px;"></i>
+                <div><strong>Operación exitosa</strong><br><?= htmlspecialchars($success) ?></div>
+            </div>
+            <?php endif; ?>
+
             <!-- Único botón de acceso: Google -->
             <a href="<?= BASE_URL ?>/auth/google" class="btn-google" id="btn-google" onclick="this.classList.add('loading')">
                 <svg class="google-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -395,14 +409,9 @@
                 Continuar con Google
             </a>
 
-            <div class="separator">Acceso exclusivo para administradores</div>
 
-            <!-- Link al login de colaborador -->
-            <a href="<?= BASE_URL ?>/auth/loginColaborador" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;font-size:13px;color:#64748b;text-decoration:none;font-weight:500;transition:all 0.3s;padding:10px;border-radius:10px;" onmouseover="this.style.color='#10b981';this.style.background='rgba(16,185,129,0.05)'" onmouseout="this.style.color='#64748b';this.style.background='transparent'">
-                <i class="fas fa-users" style="font-size:12px;"></i>
-                ¿Eres colaborador? Accede aquí
-                <i class="fas fa-arrow-right" style="font-size:11px;transition:transform 0.3s;"></i>
-            </a>
+
+
 
             <!-- Footer -->
             <div class="form-footer">

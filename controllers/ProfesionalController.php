@@ -1,11 +1,13 @@
 <?php
 require_once __DIR__ . '/../models/ProfesionalModel.php';
 require_once __DIR__ . '/../models/EmpresaModel.php';
+require_once __DIR__ . '/../helpers/PermisosHelper.php';
 
 class ProfesionalController {
     private $model;
     
     public function __construct() {
+        PermisosHelper::verificarAcceso('profesionales');
         $this->model = new ProfesionalModel();
     }
     
@@ -81,6 +83,21 @@ class ProfesionalController {
     }
     
     public function eliminar($id) {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        $userRol = $_SESSION['user']['rol'] ?? 'usuario';
+        if (!in_array($userRol, ['superadmin', 'admin'])) {
+            $_SESSION['flash_error'] = 'Acceso denegado: Se requieren permisos de Administrador.';
+            header('Location: ' . BASE_URL . '/profesionales');
+            exit;
+        }
+
+        require_once __DIR__ . '/../helpers/CsrfHelper.php';
+        if (!CsrfHelper::validateToken()) {
+            $_SESSION['flash_error'] = 'Token de seguridad inválido o expirado.';
+            header('Location: ' . BASE_URL . '/profesionales');
+            exit;
+        }
+
         $this->model->delete($id);
         header('Location: ' . BASE_URL . '/profesionales');
         exit;

@@ -1,8 +1,45 @@
-RewriteEngine On
+# ==============================================================================
+# SEGURIDAD Y ENRUTAMIENTO PRINCIPAL - GESTION PROYECTOS
+# ==============================================================================
 
-# Servir archivos y carpetas reales directamente
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+# Deshabilitar listado de directorios
+Options -Indexes -MultiViews
 
-# Redirigir al index.php del directorio actual
-RewriteRule ^(.*)$ index.php [QSA,L]
+# Prevenir acceso directo a archivos sensibles o de configuracion
+<FilesMatch "(^\.|\.(sql|env|log|ini|json|lock|bak|config|txt|md|sh|dist))$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Proteger carpetas internas del MVC contra acceso web directo
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Bloquear acceso a carpetas de logica interna
+    RewriteRule ^(controllers|models|helpers|views|config|database)/ - [F,L,NC]
+
+    # Bloquear acceso a archivos y carpetas ocultas (.git, .env, etc.)
+    RewriteRule (^|/)\.(?!well-known) - [F,L]
+
+    # Servir archivos y carpetas reales permitidos (ej. assets/, uploads/)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Redirigir todas las demas solicitudes al index.php (Front Controller)
+    RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
+
+# Cabeceras de seguridad HTTP
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+

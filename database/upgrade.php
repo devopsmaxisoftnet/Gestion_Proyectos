@@ -5,15 +5,27 @@
  */
 require __DIR__ . '/../config/database.php';
 
+// Bloqueo de seguridad: Solo permitir ejecución desde CLI o por un Superadministrador autenticado
+if (php_sapi_name() !== 'cli') {
+    if (session_status() === PHP_SESSION_NONE) { session_start(); }
+    if (empty($_SESSION['user']) || ($_SESSION['user']['rol'] ?? '') !== 'superadmin') {
+        http_response_code(403);
+        die('Acceso denegado: Este script de actualización solo puede ejecutarse desde la consola de comandos (CLI) o por un Superadministrador autenticado.');
+    }
+}
+
 try {
-    $conn = new PDO('mysql:host='.DB_HOST.';dbname='.DB_NAME.';charset=utf8mb4', DB_USER, DB_PASS);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $conn = getConnection();
 
     $archivos_sql = [
         __DIR__ . '/update_roles_areas.sql',
         __DIR__ . '/update_convocatorias_cronograma_perfiles.sql',
         __DIR__ . '/cleanup_duplicate_clientes.sql',
-        __DIR__ . '/clean_duplicate_lineas_and_roles.sql'
+        __DIR__ . '/clean_duplicate_lineas_and_roles.sql',
+        __DIR__ . '/migration_org_security.sql',
+        __DIR__ . '/migration_fase2_fase3.sql',
+        __DIR__ . '/migration_fase3_fase4_catalogos.sql',
+        __DIR__ . '/migration_costeo_actividades.sql'
     ];
 
     echo "<h1>Actualización de Base de Datos</h1>";

@@ -1,22 +1,38 @@
 <?php
 /**
- * Configuración de Base de Datos
+ * Configuración de Base de Datos y Entorno
  * Gestión Comercial - Oportunidades y Contratos
  */
 
+// Cargar configuración de seguridad
+if (file_exists(__DIR__ . '/security.php')) {
+    require_once __DIR__ . '/security.php';
+}
+
+// Cargar credenciales externas no versionadas si existen (ver db_credentials.example.php)
+if (file_exists(__DIR__ . '/db_credentials.php')) {
+    require_once __DIR__ . '/db_credentials.php';
+}
+
 $_isLocal = (php_sapi_name() === 'cli' || (isset($_SERVER['HTTP_HOST']) && (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false)));
 
-if ($_isLocal) {
-    define('DB_HOST', 'localhost');
-    define('DB_USER', 'root');
-    define('DB_PASS', '123456');
-    define('DB_NAME', 'gestion_comercial');
+if (defined('DB_HOST_CUSTOM')) {
+    define('DB_HOST', DB_HOST_CUSTOM);
+    define('DB_USER', DB_USER_CUSTOM);
+    define('DB_PASS', DB_PASS_CUSTOM);
+    define('DB_NAME', DB_NAME_CUSTOM);
+    define('BASE_URL', defined('BASE_URL_CUSTOM') ? BASE_URL_CUSTOM : ($_isLocal ? '/Gestion_Proyectos' : ''));
+} elseif ($_isLocal) {
+    define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+    define('DB_USER', getenv('DB_USER') ?: 'root');
+    define('DB_PASS', getenv('DB_PASS') !== false ? getenv('DB_PASS') : '123456');
+    define('DB_NAME', getenv('DB_NAME') ?: 'gestion_comercial');
     define('BASE_URL', '/Gestion_Proyectos');
 } else {
-    define('DB_HOST', 'localhost');
-    define('DB_USER', 'mnxsrokm_user_GestComercial');
-    define('DB_PASS', '}(ep9=-.R9KKkj__');
-    define('DB_NAME', 'mnxsrokm_comercial');
+    define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+    define('DB_USER', getenv('DB_USER') ?: 'mnxsrokm_user_GestComercial');
+    define('DB_PASS', getenv('DB_PASS') ?: '}(ep9=-.R9KKkj__');
+    define('DB_NAME', getenv('DB_NAME') ?: 'mnxsrokm_comercial');
     define('BASE_URL', '');
 }
 
@@ -45,7 +61,13 @@ function getConnection() {
                 PDO::ATTR_EMULATE_PREPARES => false
             ]);
         } catch (PDOException $e) {
-            die("Error de conexión: " . $e->getMessage());
+            error_log("Error de conexión a BD: " . $e->getMessage());
+            global $_isLocal;
+            if ($_isLocal) {
+                die("Error de conexión a Base de Datos: " . htmlspecialchars($e->getMessage()));
+            } else {
+                die("No se pudo conectar a la base de datos del sistema. Por favor verifique la configuración o contacte al administrador.");
+            }
         }
     }
     return $pdo;
@@ -75,6 +97,22 @@ function dbQueryOne($sql, $params = []) {
 function dbExecute($sql, $params = []) {
     $stmt = getConnection()->prepare($sql);
     return $stmt->execute($params);
+}
+
+/**
+ * Helper: Ejecutar query SELECT retornando todos los registros
+ */
+function dbQueryAll($sql, $params = []) {
+    return dbQuery($sql, $params);
+}
+
+/**
+ * Helper: Insertar y devolver el último ID insertado
+ */
+function dbInsert($sql, $params = []) {
+    $stmt = getConnection()->prepare($sql);
+    $stmt->execute($params);
+    return (int)getConnection()->lastInsertId();
 }
 
 /**

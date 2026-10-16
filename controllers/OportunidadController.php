@@ -2,11 +2,13 @@
 require_once __DIR__ . '/../models/OportunidadModel.php';
 require_once __DIR__ . '/../models/UsuarioModel.php';
 require_once __DIR__ . '/../models/ClienteModel.php';
+require_once __DIR__ . '/../helpers/PermisosHelper.php';
 
 class OportunidadController {
     private $model;
     
     public function __construct() {
+        PermisosHelper::verificarAcceso('oportunidades');
         $this->model = new OportunidadModel();
     }
     
@@ -79,6 +81,21 @@ class OportunidadController {
     }
     
     public function eliminar($id) {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        $userRol = $_SESSION['user']['rol'] ?? 'usuario';
+        if (!in_array($userRol, ['superadmin', 'admin'])) {
+            $_SESSION['flash_error'] = 'Acceso denegado: Se requieren permisos de Administrador.';
+            header('Location: ' . BASE_URL . '/oportunidades');
+            exit;
+        }
+
+        require_once __DIR__ . '/../helpers/CsrfHelper.php';
+        if (!CsrfHelper::validateToken()) {
+            $_SESSION['flash_error'] = 'Token de seguridad inválido o expirado.';
+            header('Location: ' . BASE_URL . '/oportunidades');
+            exit;
+        }
+
         $this->model->delete($id);
         header('Location: ' . BASE_URL . '/oportunidades');
         exit;
@@ -179,14 +196,29 @@ class OportunidadController {
                 mkdir($upload_dir, 0777, true);
             }
 
+            $currentOp = $this->model->getById($id);
+            $opCodigo = !empty($currentOp['codigo']) ? $currentOp['codigo'] : ('OP-' . $id);
+
+            require_once __DIR__ . '/../helpers/FileSecurityHelper.php';
+            require_once __DIR__ . '/../helpers/GoogleDriveHelper.php';
+
             foreach ($doc_fields as $field) {
                 if (!empty($_FILES[$field]['name']) && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
-                    $orig_name = basename($_FILES[$field]['name']);
-                    $clean_name = preg_replace('/[^a-zA-Z0-9_\.-]/', '_', $orig_name);
-                    $filename = time() . '_' . $id . '_' . $field . '_' . $clean_name;
-                    $target_file = $upload_dir . $filename;
-                    if (move_uploaded_file($_FILES[$field]['tmp_name'], $target_file)) {
+                    $uploadResult = FileSecurityHelper::validateAndUpload($_FILES[$field], $upload_dir, [
+                        'prefix' => $id . '_' . $field
+                    ]);
+
+                    if ($uploadResult['success']) {
+                        $target_file = $uploadResult['path'];
                         $eval_data[$field] = $target_file;
+                        // Sincronizar automáticamente con Google Drive en su subcarpeta correspondiente
+                        try {
+                            GoogleDriveHelper::uploadSystemFile($target_file, $uploadResult['orig_name'], 'Oportunidades', $opCodigo);
+                        } catch (\Exception $e) {
+                            // Silencioso para no interrumpir el flujo local
+                        }
+                    } else {
+                        error_log("Upload rechazado en OportunidadController [{$field}]: " . $uploadResult['error']);
                     }
                 }
             }

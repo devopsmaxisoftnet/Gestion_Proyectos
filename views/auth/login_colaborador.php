@@ -464,14 +464,7 @@
                 Continuar con Google
             </a>
 
-            <div class="separator">Acceso validado por el administrador</div>
 
-            <!-- Link al login de admin -->
-            <a href="<?= BASE_URL ?>/auth/login" class="link-admin">
-                <i class="fas fa-shield-halved"></i>
-                ¿Eres administrador? Accede aquí
-                <i class="fas fa-arrow-right"></i>
-            </a>
 
             <!-- Footer -->
             <div class="form-footer">

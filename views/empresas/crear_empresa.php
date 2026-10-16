@@ -69,6 +69,14 @@ $isIframeModal = isset($_GET['modal_iframe']) && $_GET['modal_iframe'] == 1;
                 <label>Email</label>
                 <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($item['email'] ?? '') ?>">
             </div>
+            <div class="form-group">
+                <label><i class="fab fa-google-drive" style="color: #4285F4;"></i> ID Carpeta Google Drive</label>
+                <input type="text" name="drive_folder_id" class="form-control" value="<?= htmlspecialchars($item['drive_folder_id'] ?? '') ?>" placeholder="Ej. 16Gne89yf9ckJFPJ0tABD31q2kZPlxHFr o enlace">
+            </div>
+            <div class="form-group">
+                <label><i class="fab fa-google-drive" style="color: #4285F4;"></i> Correo Propietario (Drive)</label>
+                <input type="email" name="drive_email" class="form-control" value="<?= htmlspecialchars($item['drive_email'] ?? '') ?>" placeholder="ejemplo@gmail.com">
+            </div>
         </div>
         <div class="form-actions">
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> <?= $item ? 'Guardar cambios' : 'Registrar empresa' ?></button>

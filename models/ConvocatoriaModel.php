@@ -119,6 +119,13 @@ class ConvocatoriaModel {
         if (!empty($data['perfiles'])) {
             $this->savePerfiles($convId, $data['perfiles']);
         }
+
+        // Crear subcarpeta correspondiente en Google Drive
+        try {
+            require_once __DIR__ . '/../helpers/GoogleDriveHelper.php';
+            $helper = new GoogleDriveHelper();
+            $helper->getItemFolder('Convocatorias', $codigo);
+        } catch (\Exception $e) {}
         
         return $convId;
     }

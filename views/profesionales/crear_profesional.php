@@ -261,6 +261,32 @@ select.prof-control {
             </div>
         </div>
 
+        <!-- Sección 5: Tarifas hora-hombre (costeo del tareo) -->
+        <div class="prof-section-card">
+            <div class="prof-section-title">
+                <i class="fas fa-coins"></i> 5. Tarifa Hora-Hombre (costeo por actividad)
+            </div>
+            <div class="prof-grid-2">
+                <div>
+                    <label class="prof-field-label">Costo por hora normal (S/)</label>
+                    <div class="prof-input-wrap">
+                        <i class="fas fa-clock prof-input-icon"></i>
+                        <input type="number" step="0.01" min="0" max="99999" name="costo_hora" id="tarifaNormal" class="prof-control" value="<?= htmlspecialchars(number_format((float)($prof['costo_hora'] ?? 25), 2, '.', '')) ?>">
+                    </div>
+                </div>
+                <div>
+                    <label class="prof-field-label">Costo por hora extra (S/)</label>
+                    <div class="prof-input-wrap">
+                        <i class="fas fa-business-time prof-input-icon"></i>
+                        <input type="number" step="0.01" min="0" max="99999" name="costo_hora_extra" id="tarifaExtra" class="prof-control" value="<?= htmlspecialchars(number_format((float)($prof['costo_hora_extra'] ?? 35), 2, '.', '')) ?>">
+                    </div>
+                </div>
+            </div>
+            <p style="margin:10px 0 0; font-size:11.5px; color:#64748b;">
+                <i class="fas fa-info-circle"></i> El tareo multiplica las horas por estas tarifas y suma el costo a la actividad. Un cambio de tarifa afecta solo a los tareos que se registren desde ahora; los anteriores conservan su costo.
+            </p>
+        </div>
+
         <!-- Barra Inferior de Acciones -->
         <div style="margin-top: 20px; display:flex; justify-content:flex-end; align-items:center; gap: 12px; padding-top: 14px; border-top: 1px solid #f1f5f9;">
             <?php if (!$isModal): ?>

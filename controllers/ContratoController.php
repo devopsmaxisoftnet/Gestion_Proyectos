@@ -3,11 +3,13 @@ require_once __DIR__ . '/../models/ContratoModel.php';
 require_once __DIR__ . '/../models/OportunidadModel.php';
 require_once __DIR__ . '/../models/ClienteModel.php';
 require_once __DIR__ . '/../models/UsuarioModel.php';
+require_once __DIR__ . '/../helpers/PermisosHelper.php';
 
 class ContratoController {
     private $model;
     
     public function __construct() {
+        PermisosHelper::verificarAcceso('contratos');
         $this->model = new ContratoModel();
     }
     
@@ -99,6 +101,21 @@ class ContratoController {
     }
     
     public function eliminar($id) {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        $userRol = $_SESSION['user']['rol'] ?? 'usuario';
+        if (!in_array($userRol, ['superadmin', 'admin'])) {
+            $_SESSION['flash_error'] = 'Acceso denegado: Se requieren permisos de Administrador.';
+            header('Location: ' . BASE_URL . '/contratos');
+            exit;
+        }
+
+        require_once __DIR__ . '/../helpers/CsrfHelper.php';
+        if (!CsrfHelper::validateToken()) {
+            $_SESSION['flash_error'] = 'Token de seguridad inválido o expirado.';
+            header('Location: ' . BASE_URL . '/contratos');
+            exit;
+        }
+
         $this->model->delete($id);
         header('Location: ' . BASE_URL . '/contratos');
         exit;
@@ -107,15 +124,36 @@ class ContratoController {
     public function agregar_pago($contratoId) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->model->agregarPago($contratoId, $_POST);
-            $redirect = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : (BASE_URL . '/contratos/ver/' . $contratoId);
+            $referer = $_SERVER['HTTP_REFERER'] ?? '';
+            $redirect = (!empty($referer) && (strpos($referer, '/contratos') !== false || strpos($referer, 'localhost') !== false))
+                ? $referer
+                : (BASE_URL . '/contratos/ver/' . (int)$contratoId);
             header('Location: ' . $redirect);
             exit;
         }
     }
 
     public function eliminar_pago($pagoId) {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        $userRol = $_SESSION['user']['rol'] ?? 'usuario';
+        if (!in_array($userRol, ['superadmin', 'admin'])) {
+            $_SESSION['flash_error'] = 'Acceso denegado: Se requieren permisos de Administrador.';
+            header('Location: ' . BASE_URL . '/contratos');
+            exit;
+        }
+
+        require_once __DIR__ . '/../helpers/CsrfHelper.php';
+        if (!CsrfHelper::validateToken()) {
+            $_SESSION['flash_error'] = 'Token de seguridad inválido o expirado.';
+            header('Location: ' . BASE_URL . '/contratos');
+            exit;
+        }
+
         $this->model->eliminarPago($pagoId);
-        $redirect = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : (BASE_URL . '/contratos');
+        $referer = $_SERVER['HTTP_REFERER'] ?? '';
+        $redirect = (!empty($referer) && (strpos($referer, '/contratos') !== false || strpos($referer, 'localhost') !== false))
+            ? $referer
+            : (BASE_URL . '/contratos');
         header('Location: ' . $redirect);
         exit;
     }

@@ -2,11 +2,13 @@
 require_once __DIR__ . '/../models/ProyectoModel.php';
 require_once __DIR__ . '/../models/ContratoModel.php';
 require_once __DIR__ . '/../models/UsuarioModel.php';
+require_once __DIR__ . '/../helpers/PermisosHelper.php';
 
 class ProyectoController {
     private $model;
     
     public function __construct() {
+        PermisosHelper::verificarAcceso('proyectos');
         $this->model = new ProyectoModel();
     }
     
@@ -71,6 +73,21 @@ class ProyectoController {
     }
     
     public function eliminar($id) {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        $userRol = $_SESSION['user']['rol'] ?? 'usuario';
+        if (!in_array($userRol, ['superadmin', 'admin'])) {
+            $_SESSION['flash_error'] = 'Acceso denegado: Se requieren permisos de Administrador.';
+            header('Location: ' . BASE_URL . '/proyectos');
+            exit;
+        }
+
+        require_once __DIR__ . '/../helpers/CsrfHelper.php';
+        if (!CsrfHelper::validateToken()) {
+            $_SESSION['flash_error'] = 'Token de seguridad inválido o expirado.';
+            header('Location: ' . BASE_URL . '/proyectos');
+            exit;
+        }
+
         $this->model->delete($id);
         header('Location: ' . BASE_URL . '/proyectos');
         exit;

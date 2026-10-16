@@ -128,6 +128,7 @@ function aplicarFiltrosProfesionales() {
                 <th>Especialidad Técnica (Catálogo)</th>
                 <th>Empresa / Consorcio</th>
                 <th>Contacto</th>
+                <th style="text-align:right;">Tarifa H-H</th>
                 <th>Estado</th>
                 <th style="text-align: right;">Acciones</th>
             </tr>
@@ -135,7 +136,7 @@ function aplicarFiltrosProfesionales() {
         <tbody>
             <?php if (empty($profesionales)): ?>
             <tr>
-                <td colspan="7">
+                <td colspan="8">
                     <div class="empty-state" style="padding: 40px 20px;">
                         <i class="fas fa-users-slash" style="font-size: 40px; color: #cbd5e1; margin-bottom: 12px;"></i>
                         <h3 style="font-size: 16px; color: #334155; margin-bottom: 6px;">No se encontraron profesionales</h3>
@@ -204,6 +205,10 @@ function aplicarFiltrosProfesionales() {
                             </a>
                         <?php endif; ?>
                     </div>
+                </td>
+                <td style="text-align:right; white-space:nowrap;">
+                    <strong style="color:#0f172a; font-size:12.5px;">S/ <?= number_format((float)($prof['costo_hora'] ?? 0), 2) ?></strong>
+                    <div style="font-size:11px; color:#d97706;">extra S/ <?= number_format((float)($prof['costo_hora_extra'] ?? 0), 2) ?></div>
                 </td>
                 <td>
                     <?php if (($prof['activo'] ?? 1) == 1): ?>

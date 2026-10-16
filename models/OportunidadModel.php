@@ -62,7 +62,16 @@ class OportunidadModel {
             $monto, $fechaLimite, $data['prioridad'] ?? 'media',
             $data['descripcion'] ?? ''
         ]);
-        return dbLastId();
+        $newId = dbLastId();
+
+        // Crear subcarpeta correspondiente en Google Drive
+        try {
+            require_once __DIR__ . '/../helpers/GoogleDriveHelper.php';
+            $helper = new GoogleDriveHelper();
+            $helper->getItemFolder('Oportunidades', $codigo);
+        } catch (\Exception $e) {}
+
+        return $newId;
     }
     
     public function update($id, $data) {

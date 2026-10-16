@@ -4,12 +4,41 @@ ehthumbs.db
 Desktop.ini
 .DS_Store
 
-# User Uploads
+# User Uploads (Archivos subidos por usuarios)
 /uploads/*
 !/uploads/.gitkeep
+!/uploads/.htaccess
 !/uploads/oportunidades/
 /uploads/oportunidades/*
 !/uploads/oportunidades/.gitkeep
+!/uploads/oportunidades/.htaccess
+!/uploads/propuestas/
+/uploads/propuestas/*
+!/uploads/propuestas/.gitkeep
+!/uploads/documentos/
+/uploads/documentos/*
+!/uploads/documentos/.gitkeep
 
-# Sensitive credentials
+# Sensitive credentials & Environment (NUNCA SUBIR A GIT)
+.env
+.env.*
+/config/db_credentials.php
 /config/google_secret.php
+/config/client_secret.json
+/config/token.json
+/config/drive_root_folder.txt
+
+# Database dumps / backups (excluye backups pero incluye esquema y migraciones)
+*.sql
+/database/*.sql
+!/database/schema.sql
+!/database/migration_*.sql
+!/database/update_*.sql
+!/database/cleanup_*.sql
+!/database/clean_duplicate_lineas_and_roles.sql
+/database/clean_users_only_guillermo.sql
+
+# Composer & Temporary
+/vendor/
+/scratch/
+

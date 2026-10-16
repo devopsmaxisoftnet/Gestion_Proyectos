@@ -2,11 +2,13 @@
 require_once __DIR__ . '/../models/PropuestaModel.php';
 require_once __DIR__ . '/../models/LicitacionModel.php';
 require_once __DIR__ . '/../models/UsuarioModel.php';
+require_once __DIR__ . '/../helpers/PermisosHelper.php';
 
 class PropuestaController {
     private $model;
     
     public function __construct() {
+        PermisosHelper::verificarAcceso('propuestas');
         $this->model = new PropuestaModel();
     }
     
@@ -35,20 +37,46 @@ class PropuestaController {
             $upload_dir = 'uploads/propuestas/';
             if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
 
+            $uploadedTec = null;
+            $uploadedEco = null;
+
+            require_once __DIR__ . '/../helpers/FileSecurityHelper.php';
+
             if (!empty($_FILES['archivo_tecnica']['name']) && $_FILES['archivo_tecnica']['error'] === UPLOAD_ERR_OK) {
-                $file = time() . '_tec_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '_', basename($_FILES['archivo_tecnica']['name']));
-                if (move_uploaded_file($_FILES['archivo_tecnica']['tmp_name'], $upload_dir . $file)) {
-                    $data['archivo_tecnica'] = $upload_dir . $file;
+                $upTec = FileSecurityHelper::validateAndUpload($_FILES['archivo_tecnica'], $upload_dir, ['prefix' => 'tec']);
+                if ($upTec['success']) {
+                    $data['archivo_tecnica'] = $upTec['path'];
+                    $uploadedTec = ['path' => $upTec['path'], 'name' => $upTec['orig_name']];
+                } else {
+                    error_log("Upload técnica rechazado: " . $upTec['error']);
                 }
             }
             if (!empty($_FILES['archivo_economica']['name']) && $_FILES['archivo_economica']['error'] === UPLOAD_ERR_OK) {
-                $file = time() . '_eco_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '_', basename($_FILES['archivo_economica']['name']));
-                if (move_uploaded_file($_FILES['archivo_economica']['tmp_name'], $upload_dir . $file)) {
-                    $data['archivo_economica'] = $upload_dir . $file;
+                $upEco = FileSecurityHelper::validateAndUpload($_FILES['archivo_economica'], $upload_dir, ['prefix' => 'eco']);
+                if ($upEco['success']) {
+                    $data['archivo_economica'] = $upEco['path'];
+                    $uploadedEco = ['path' => $upEco['path'], 'name' => $upEco['orig_name']];
+                } else {
+                    error_log("Upload económica rechazado: " . $upEco['error']);
                 }
             }
 
-            $this->model->create($data);
+            $nuevoId = $this->model->create($data);
+
+            if ($nuevoId && ($uploadedTec || $uploadedEco)) {
+                $createdProp = $this->model->getById($nuevoId);
+                $propCode = !empty($createdProp['codigo']) ? $createdProp['codigo'] : ('PROP-' . $nuevoId);
+                try {
+                    require_once __DIR__ . '/../helpers/GoogleDriveHelper.php';
+                    if ($uploadedTec) {
+                        GoogleDriveHelper::uploadSystemFile($uploadedTec['path'], $uploadedTec['name'], 'Propuestas', $propCode);
+                    }
+                    if ($uploadedEco) {
+                        GoogleDriveHelper::uploadSystemFile($uploadedEco['path'], $uploadedEco['name'], 'Propuestas', $propCode);
+                    }
+                } catch (\Exception $e) {}
+            }
+
             header('Location: ' . BASE_URL . '/propuestas');
             exit;
         }
@@ -73,16 +101,32 @@ class PropuestaController {
             $upload_dir = 'uploads/propuestas/';
             if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
 
+            $prop = $this->model->getById($id);
+            $propCode = !empty($prop['codigo']) ? $prop['codigo'] : ('PROP-' . $id);
+
+            require_once __DIR__ . '/../helpers/FileSecurityHelper.php';
+            require_once __DIR__ . '/../helpers/GoogleDriveHelper.php';
+
             if (!empty($_FILES['archivo_tecnica']['name']) && $_FILES['archivo_tecnica']['error'] === UPLOAD_ERR_OK) {
-                $file = time() . '_tec_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '_', basename($_FILES['archivo_tecnica']['name']));
-                if (move_uploaded_file($_FILES['archivo_tecnica']['tmp_name'], $upload_dir . $file)) {
-                    $data['archivo_tecnica'] = $upload_dir . $file;
+                $upTec = FileSecurityHelper::validateAndUpload($_FILES['archivo_tecnica'], $upload_dir, ['prefix' => 'tec']);
+                if ($upTec['success']) {
+                    $data['archivo_tecnica'] = $upTec['path'];
+                    try {
+                        GoogleDriveHelper::uploadSystemFile($upTec['path'], $upTec['orig_name'], 'Propuestas', $propCode);
+                    } catch (\Exception $e) {}
+                } else {
+                    error_log("Upload técnica rechazado en editar: " . $upTec['error']);
                 }
             }
             if (!empty($_FILES['archivo_economica']['name']) && $_FILES['archivo_economica']['error'] === UPLOAD_ERR_OK) {
-                $file = time() . '_eco_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '_', basename($_FILES['archivo_economica']['name']));
-                if (move_uploaded_file($_FILES['archivo_economica']['tmp_name'], $upload_dir . $file)) {
-                    $data['archivo_economica'] = $upload_dir . $file;
+                $upEco = FileSecurityHelper::validateAndUpload($_FILES['archivo_economica'], $upload_dir, ['prefix' => 'eco']);
+                if ($upEco['success']) {
+                    $data['archivo_economica'] = $upEco['path'];
+                    try {
+                        GoogleDriveHelper::uploadSystemFile($upEco['path'], $upEco['orig_name'], 'Propuestas', $propCode);
+                    } catch (\Exception $e) {}
+                } else {
+                    error_log("Upload económica rechazado en editar: " . $upEco['error']);
                 }
             }
 
@@ -133,6 +177,21 @@ class PropuestaController {
     }
     
     public function eliminar($id) {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        $userRol = $_SESSION['user']['rol'] ?? 'usuario';
+        if (!in_array($userRol, ['superadmin', 'admin'])) {
+            $_SESSION['flash_error'] = 'Acceso denegado: Se requieren permisos de Administrador.';
+            header('Location: ' . BASE_URL . '/propuestas');
+            exit;
+        }
+
+        require_once __DIR__ . '/../helpers/CsrfHelper.php';
+        if (!CsrfHelper::validateToken()) {
+            $_SESSION['flash_error'] = 'Token de seguridad inválido o expirado.';
+            header('Location: ' . BASE_URL . '/propuestas');
+            exit;
+        }
+
         $this->model->delete($id);
         header('Location: ' . BASE_URL . '/propuestas');
         exit;

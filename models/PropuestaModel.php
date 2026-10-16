@@ -60,9 +60,17 @@ class PropuestaModel {
             $codigo, $data['licitacion_id'], $data['responsable_id'] ?: null, $monto,
             $data['propuesta_tecnica'] ?? '', $data['propuesta_economica'] ?? '',
             $data['archivo_tecnica'] ?? null, $data['archivo_economica'] ?? null,
-            $data['observaciones'] ?? ''
         ]);
-        return dbLastId();
+        $newId = dbLastId();
+
+        // Crear subcarpeta correspondiente en Google Drive
+        try {
+            require_once __DIR__ . '/../helpers/GoogleDriveHelper.php';
+            $helper = new GoogleDriveHelper();
+            $helper->getItemFolder('Propuestas', $codigo);
+        } catch (\Exception $e) {}
+
+        return $newId;
     }
     
     public function update($id, $data) {

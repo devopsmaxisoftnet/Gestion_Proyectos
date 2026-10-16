@@ -3,23 +3,26 @@
      ===================================================== -->
 
 <?php
-// Calcular stats de usuarios
+// Calcular stats de usuarios considerando estado de aprobación y suspensión
 $totalUsuarios = count($data['usuarios']);
 $activos = 0;
 $pendientes = 0;
 $suspendidos = 0;
 foreach ($data['usuarios'] as $u) {
-    if ($u['activo']) $activos++;
-    else $suspendidos++;
+    if (!$u['activo']) {
+        $suspendidos++;
+    } elseif (isset($u['acceso_aprobado']) && empty($u['acceso_aprobado'])) {
+        $pendientes++;
+    } else {
+        $activos++;
+    }
 }
 ?>
 
-<div class="page-header">
-    <div>
-        <h2>Usuarios y accesos</h2>
-        <p>Asigna responsables por empresa, línea de negocio o proyecto y controla su estado.</p>
-    </div>
-</div>
+<?php
+$activeUserTab = 'directorio';
+include __DIR__ . '/navbar_usuarios.php';
+?>
 
 <!-- Stats Cards -->
 <div class="stats-grid">
@@ -106,9 +109,16 @@ foreach ($data['usuarios'] as $u) {
                         </div>
                     </div>
                 </td>
-                <td><?= htmlspecialchars($u['rol_nombre'] ?? '-') ?></td>
                 <td>
-                    <span class="cell-main">Toda la empresa</span>
+                    <span class="cell-main" style="font-weight:600;"><?= htmlspecialchars($u['cargo_nombre'] ?? $u['rol_nombre'] ?? '-') ?></span>
+                    <?php if (!empty($u['cargo_nivel'])): ?>
+                        <span class="cell-sub" style="color:#6366f1; font-weight:700; font-size:11px;">Nivel <?= $u['cargo_nivel'] ?> · <?= htmlspecialchars($u['cargo_codigo'] ?? '') ?></span>
+                    <?php else: ?>
+                        <span class="cell-sub"><?= htmlspecialchars($u['rol_nombre'] ?? '') ?></span>
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <span class="cell-main"><?= htmlspecialchars($u['area_nombre'] ?? 'Toda la empresa') ?></span>
                     <span class="cell-sub"><?= htmlspecialchars($u['rol_nombre'] ?? 'Empresa') ?></span>
                 </td>
                 <td>
@@ -129,23 +139,38 @@ foreach ($data['usuarios'] as $u) {
                 </td>
                 <td>
                     <div class="table-actions">
-                        <?php if (isset($u['acceso_aprobado']) && !$u['acceso_aprobado']): ?>
+                        <?php 
+                        $esRaiz = in_array(strtolower($u['email'] ?? ''), ['devops.maxisoftnet@gmail.com', 'asconsultti@gmail.com']);
+                        ?>
+                        <?php if ($esRaiz): ?>
+                            <span style="font-size:11px; font-weight:800; color:#7c3aed; background:#f3e8ff; border:1px solid #d8b4fe; padding:3px 9px; border-radius:6px; display:inline-flex; align-items:center; gap:5px;" title="Administrador Global Maestro (Acceso Total Permanente)">
+                                <i class="fas fa-crown"></i> Cuenta Raíz
+                            </span>
+                            <a href="javascript:void(0)" onclick="abrirGlobalModal('Cuenta Raíz Protegida', '<?= BASE_URL ?>/usuarios/editar/<?= $u['id'] ?>?modal_iframe=1', 'fas fa-crown', 'Director General / CEO · Control Administrativo Total Permanente')" class="btn-icon" style="width:30px; height:30px; border-radius:8px; border:1px solid #d8b4fe; background:#faf5ff; color:#7c3aed; margin-left:6px; display:inline-flex; align-items:center; justify-content:center; transition:all 0.2s;" title="Ver cuenta protegida">
+                                <i class="fas fa-shield-alt" style="font-size:12px;"></i>
+                            </a>
+                        <?php elseif (isset($u['acceso_aprobado']) && !$u['acceso_aprobado']): ?>
                             <a href="javascript:void(0)" onclick="confirmarAccion('Aprobar Cuenta', '¿Estás seguro de activar la cuenta de <?= htmlspecialchars($u['nombre']) ?> para otorgarle acceso al sistema?', '<?= BASE_URL ?>/usuarios/alternar_estado/<?= $u['id'] ?>', '#10b981', 'fas fa-check-circle', false)" class="section-action" style="font-size:12px; color:#059669; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
                                 <i class="fas fa-user-check"></i> Activar cuenta
+                            </a>
+                            <a href="javascript:void(0)" onclick="abrirGlobalModal('Editar Usuario Corporativo', '<?= BASE_URL ?>/usuarios/editar/<?= $u['id'] ?>?modal_iframe=1', 'fas fa-id-card-alt', 'Configura el Área y Cargo oficial en el Organigrama corporativo')" class="btn-icon" style="width:30px; height:30px; border-radius:8px; border:1px solid #e2e8f0; background:#ffffff; color:#64748b; margin-left:6px; display:inline-flex; align-items:center; justify-content:center; transition:all 0.2s;" title="Editar usuario">
+                                <i class="fas fa-pen" style="font-size:11px;"></i>
                             </a>
                         <?php elseif ($u['activo']): ?>
                             <a href="javascript:void(0)" onclick="confirmarAccion('Suspender Usuario', '¿Estás seguro de suspender a <?= htmlspecialchars($u['nombre']) ?>? Perderá acceso temporalmente al sistema.', '<?= BASE_URL ?>/usuarios/alternar_estado/<?= $u['id'] ?>', '#ef4444', 'fas fa-user-slash', true)" class="section-action" style="font-size:12px; color:#dc2626; font-weight:500; display:inline-flex; align-items:center; gap:4px;">
                                 <i class="fas fa-ban"></i> Suspender
                             </a>
+                            <a href="javascript:void(0)" onclick="abrirGlobalModal('Editar Usuario Corporativo', '<?= BASE_URL ?>/usuarios/editar/<?= $u['id'] ?>?modal_iframe=1', 'fas fa-id-card-alt', 'Configura el Área y Cargo oficial en el Organigrama corporativo')" class="btn-icon" style="width:30px; height:30px; border-radius:8px; border:1px solid #e2e8f0; background:#ffffff; color:#64748b; margin-left:6px; display:inline-flex; align-items:center; justify-content:center; transition:all 0.2s;" title="Editar usuario">
+                                <i class="fas fa-pen" style="font-size:11px;"></i>
+                            </a>
                         <?php else: ?>
                             <a href="javascript:void(0)" onclick="confirmarAccion('Activar Usuario', '¿Estás seguro de reactivar a <?= htmlspecialchars($u['nombre']) ?>? Recuperará su acceso al sistema.', '<?= BASE_URL ?>/usuarios/alternar_estado/<?= $u['id'] ?>', '#10b981', 'fas fa-user-check', false)" class="section-action" style="font-size:12px; color:#059669; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
                                 <i class="fas fa-power-off"></i> Activar
                             </a>
+                            <a href="javascript:void(0)" onclick="abrirGlobalModal('Editar Usuario Corporativo', '<?= BASE_URL ?>/usuarios/editar/<?= $u['id'] ?>?modal_iframe=1', 'fas fa-id-card-alt', 'Configura el Área y Cargo oficial en el Organigrama corporativo')" class="btn-icon" style="width:30px; height:30px; border-radius:8px; border:1px solid #e2e8f0; background:#ffffff; color:#64748b; margin-left:6px; display:inline-flex; align-items:center; justify-content:center; transition:all 0.2s;" title="Editar usuario">
+                                <i class="fas fa-pen" style="font-size:11px;"></i>
+                            </a>
                         <?php endif; ?>
-                        
-                        <a href="javascript:void(0)" onclick="abrirGlobalModal('Editar Usuario', '<?= BASE_URL ?>/usuarios/editar/<?= $u['id'] ?>?modal_iframe=1', 'fas fa-user-edit')" class="btn-icon" style="width:30px; height:30px; border-radius:8px; border:1px solid #e2e8f0; background:#ffffff; color:#64748b; margin-left:6px; display:inline-flex; align-items:center; justify-content:center; transition:all 0.2s;" title="Editar usuario">
-                            <i class="fas fa-pen" style="font-size:11px;"></i>
-                        </a>
                     </div>
                 </td>
             </tr>

@@ -28,9 +28,12 @@ class EmpresaModel {
     }
     
     public function create($data) {
+        require_once __DIR__ . '/../helpers/GoogleDriveHelper.php';
+        $drive_id = !empty($data['drive_folder_id']) ? GoogleDriveHelper::extractFolderId($data['drive_folder_id']) : null;
+
         dbExecute("
-            INSERT INTO empresas (razon_social, ruc, tipo_empresa, num_cuenta, direccion, representante, contacto_administrativo, telefono, email, especialidad_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO empresas (razon_social, ruc, tipo_empresa, num_cuenta, direccion, representante, contacto_administrativo, telefono, email, especialidad_id, drive_folder_id, drive_email)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ", [
             $data['razon_social'], $data['ruc'] ?? '', 
             $data['tipo_empresa'] ?? 'externa',
@@ -39,17 +42,30 @@ class EmpresaModel {
             $data['representante'] ?? '',
             $data['contacto_administrativo'] ?? '',
             $data['telefono'] ?? '', $data['email'] ?? '',
-            !empty($data['especialidad_id']) ? $data['especialidad_id'] : null
+            !empty($data['especialidad_id']) ? $data['especialidad_id'] : null,
+            $drive_id,
+            $data['drive_email'] ?? null
         ]);
-        return dbLastId();
+        $newId = dbLastId();
+
+        // Crear subcarpeta correspondiente en Google Drive
+        try {
+            $helper = new GoogleDriveHelper();
+            $helper->getItemFolder('Documentos', $data['razon_social']);
+        } catch (\Exception $e) {}
+
+        return $newId;
     }
     
     public function update($id, $data) {
+        require_once __DIR__ . '/../helpers/GoogleDriveHelper.php';
+        $drive_id = !empty($data['drive_folder_id']) ? GoogleDriveHelper::extractFolderId($data['drive_folder_id']) : null;
+
         return dbExecute("
             UPDATE empresas SET
             razon_social = ?, ruc = ?, tipo_empresa = ?, num_cuenta = ?, direccion = ?, 
             representante = ?, contacto_administrativo = ?, telefono = ?, email = ?,
-            especialidad_id = ?
+            especialidad_id = ?, drive_folder_id = ?, drive_email = ?
             WHERE id = ?
         ", [
             $data['razon_social'], $data['ruc'] ?? '', 
@@ -59,7 +75,10 @@ class EmpresaModel {
             $data['representante'] ?? '',
             $data['contacto_administrativo'] ?? '',
             $data['telefono'] ?? '', $data['email'] ?? '',
-            !empty($data['especialidad_id']) ? $data['especialidad_id'] : null, $id
+            !empty($data['especialidad_id']) ? $data['especialidad_id'] : null,
+            $drive_id,
+            $data['drive_email'] ?? null,
+            $id
         ]);
     }
     
@@ -101,17 +120,28 @@ class EmpresaModel {
     }
 
     public function createDocumento($empresa_id, $data) {
-        // file upload logic handling
         $archivo_path = null;
         if (!empty($_FILES['archivo_documento']['name'])) {
             $upload_dir = 'uploads/documentos/';
             if (!is_dir($upload_dir)) {
                 mkdir($upload_dir, 0777, true);
             }
-            $filename = time() . '_' . basename($_FILES['archivo_documento']['name']);
-            $target_file = $upload_dir . $filename;
-            if (move_uploaded_file($_FILES['archivo_documento']['tmp_name'], $target_file)) {
-                $archivo_path = $target_file;
+            require_once __DIR__ . '/../helpers/FileSecurityHelper.php';
+            require_once __DIR__ . '/../helpers/GoogleDriveHelper.php';
+
+            $upDoc = FileSecurityHelper::validateAndUpload($_FILES['archivo_documento'], $upload_dir, [
+                'prefix' => 'emp_' . $empresa_id
+            ]);
+
+            if ($upDoc['success']) {
+                $archivo_path = $upDoc['path'];
+                try {
+                    $emp = $this->getById($empresa_id);
+                    $empName = !empty($emp['razon_social']) ? $emp['razon_social'] : ('Empresa_' . $empresa_id);
+                    GoogleDriveHelper::uploadSystemFile($upDoc['path'], $upDoc['orig_name'], 'Documentos', $empName);
+                } catch (\Exception $e) {}
+            } else {
+                error_log("Upload documento empresa rechazado: " . $upDoc['error']);
             }
         }
 

@@ -1,11 +1,13 @@
 <?php
 require_once __DIR__ . '/../models/EmpresaModel.php';
 require_once __DIR__ . '/../models/ProfesionalModel.php';
+require_once __DIR__ . '/../helpers/PermisosHelper.php';
 
 class EmpresaController {
     private $model;
     
     public function __construct() {
+        PermisosHelper::verificarAcceso('empresas');
         $this->model = new EmpresaModel();
     }
     
@@ -71,6 +73,12 @@ class EmpresaController {
     }
     
     public function eliminar($id) {
+        require_once __DIR__ . '/../helpers/CsrfHelper.php';
+        if (!CsrfHelper::validateToken()) {
+            $_SESSION['flash_error'] = 'Token de seguridad inválido o expirado.';
+            header('Location: ' . BASE_URL . '/empresas');
+            exit;
+        }
         $this->model->delete($id);
         header('Location: ' . BASE_URL . '/empresas');
         exit;
@@ -85,8 +93,13 @@ class EmpresaController {
     }
 
     public function unlinkProfesional($prof_id) {
+        require_once __DIR__ . '/../helpers/CsrfHelper.php';
+        if (!CsrfHelper::validateToken()) {
+            header('Location: ' . BASE_URL . '/empresas');
+            exit;
+        }
         if (isset($_GET['empresa_id'])) {
-            $emp_id = $_GET['empresa_id'];
+            $emp_id = (int)$_GET['empresa_id'];
             $this->model->unlinkProfesional($prof_id);
             header('Location: ' . BASE_URL . '/empresas/editar/' . $emp_id);
         } else {
@@ -104,8 +117,13 @@ class EmpresaController {
     }
 
     public function eliminarDocumento($doc_id) {
+        require_once __DIR__ . '/../helpers/CsrfHelper.php';
+        if (!CsrfHelper::validateToken()) {
+            header('Location: ' . BASE_URL . '/empresas');
+            exit;
+        }
         if (isset($_GET['empresa_id'])) {
-            $emp_id = $_GET['empresa_id'];
+            $emp_id = (int)$_GET['empresa_id'];
             $this->model->deleteDocumento($doc_id);
             header('Location: ' . BASE_URL . '/empresas/editar/' . $emp_id);
         } else {

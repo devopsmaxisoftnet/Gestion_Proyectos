@@ -78,8 +78,8 @@ class ProfesionalModel {
         }
 
         return dbExecute("
-            INSERT INTO profesionales (nombre, tipo_profesional, tipo_profesional_id, especialidad, especialidad_id, telefono, email, empresa_id, activo)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO profesionales (nombre, tipo_profesional, tipo_profesional_id, especialidad, especialidad_id, telefono, email, empresa_id, activo, costo_hora, costo_hora_extra)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ", [
             $data['nombre'],
             $tipoNombre,
@@ -89,10 +89,21 @@ class ProfesionalModel {
             $data['telefono'] ?? null,
             $data['email'] ?? null,
             !empty($data['empresa_id']) ? $data['empresa_id'] : null,
-            isset($data['activo']) ? intval($data['activo']) : 1
+            isset($data['activo']) ? intval($data['activo']) : 1,
+            $this->tarifa($data['costo_hora'] ?? null, 25.00),
+            $this->tarifa($data['costo_hora_extra'] ?? null, 35.00)
         ]);
     }
-    
+
+    /**
+     * Tarifa hora-hombre: número >= 0 con 2 decimales. Vacío/ausente = valor por defecto.
+     */
+    private function tarifa($v, float $defecto): float {
+        if ($v === null || $v === '') { return $defecto; }
+        if (!is_numeric($v) || (float)$v < 0 || (float)$v > 99999) { return $defecto; }
+        return round((float)$v, 2);
+    }
+
     public function update($id, $data) {
         $espId = !empty($data['especialidad_id']) ? intval($data['especialidad_id']) : null;
         $especialidadNombre = $data['especialidad'] ?? '';
@@ -113,10 +124,12 @@ class ProfesionalModel {
             }
         }
 
+        $actual = dbQueryOne("SELECT costo_hora, costo_hora_extra FROM profesionales WHERE id = ?", [$id]) ?: ['costo_hora' => 25, 'costo_hora_extra' => 35];
+
         return dbExecute("
             UPDATE profesionales SET
             nombre = ?, tipo_profesional = ?, tipo_profesional_id = ?, especialidad = ?, especialidad_id = ?,
-            telefono = ?, email = ?, empresa_id = ?, activo = ?
+            telefono = ?, email = ?, empresa_id = ?, activo = ?, costo_hora = ?, costo_hora_extra = ?
             WHERE id = ?
         ", [
             $data['nombre'],
@@ -128,6 +141,8 @@ class ProfesionalModel {
             $data['email'] ?? null,
             !empty($data['empresa_id']) ? $data['empresa_id'] : null,
             isset($data['activo']) ? intval($data['activo']) : 1,
+            $this->tarifa($data['costo_hora'] ?? null, (float)$actual['costo_hora']),
+            $this->tarifa($data['costo_hora_extra'] ?? null, (float)$actual['costo_hora_extra']),
             $id
         ]);
     }
