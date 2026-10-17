@@ -90,6 +90,20 @@
 html {
     font-size: 14px;
     scroll-behavior: smooth;
+    zoom: 0.8;
+}
+
+/* En pantallas móviles (< 768px), mantener tamaño táctil legible */
+@media (max-width: 768px) {
+    html {
+        zoom: 1;
+    }
+}
+
+/* En vistas modales dentro de iframes para evitar escalado doble */
+html:has(body.is-modal-view),
+body.is-modal-view {
+    zoom: 1 !important;
 }
 
 body {
